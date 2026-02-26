@@ -1,50 +1,131 @@
-export type WebSocketEventHandler<TPayload> = (payload: TPayload) => void;
+import type {
+  WebSocketCloseHandler,
+  WebSocketErrorHandler,
+  WebSocketEventHandler,
+  WebSocketOpenHandler,
+  WebSocketServiceOptions,
+} from "./websocket-service.types";
 
-export interface WebSocketServiceOptions {
-  url: string;
-}
+export function createWebSocketService<TServerMessage, TClientMessage = string>(
+  options: WebSocketServiceOptions,
+) {
+  let socket: WebSocket | null = null;
+  let isExplicitDisconnect = false;
+  let pendingMessages: string[] = [];
+  const logPrefix = options.debugName ? `[ws:${options.debugName}]` : "[ws]";
 
-export class WebSocketService<TServerMessage, TClientMessage = string> {
-  private readonly url: string;
-  private socket: WebSocket | null = null;
-  private readonly listeners = new Set<WebSocketEventHandler<TServerMessage>>();
+  const listeners = new Set<WebSocketEventHandler<TServerMessage>>();
+  const openListeners = new Set<WebSocketOpenHandler>();
+  const closeListeners = new Set<WebSocketCloseHandler>();
+  const errorListeners = new Set<WebSocketErrorHandler>();
 
-  constructor(options: WebSocketServiceOptions) {
-    this.url = options.url;
-  }
-
-  connect(): void {
-    if (this.socket && this.socket.readyState <= WebSocket.OPEN) {
+  function connect(): void {
+    if (socket && socket.readyState <= WebSocket.OPEN) {
+      console.debug(`${logPrefix} connect skipped (already connecting/open)`);
       return;
     }
 
-    this.socket = new WebSocket(this.url);
-    this.socket.onmessage = (event) => {
-      const payload = JSON.parse(String(event.data)) as TServerMessage;
-      this.listeners.forEach((handler) => handler(payload));
+    isExplicitDisconnect = false;
+    console.debug(`${logPrefix} connecting`, { url: options.url });
+    socket = new WebSocket(options.url);
+
+    socket.onopen = () => {
+      const pending = pendingMessages;
+      pendingMessages = [];
+      console.debug(`${logPrefix} connected`, { flushedMessages: pending.length });
+      pending.forEach((message) => socket?.send(message));
+      openListeners.forEach((handler) => handler());
+    };
+
+    socket.onmessage = (event) => {
+      let payload: TServerMessage;
+      try {
+        payload = JSON.parse(String(event.data)) as TServerMessage;
+      } catch (err) {
+        console.error(`${logPrefix} parse error`, err);
+        errorListeners.forEach((handler) =>
+          handler(new ErrorEvent("error", { error: err, message: "Failed to parse message" })),
+        );
+        return;
+      }
+      console.debug(`${logPrefix} message`, payload);
+      listeners.forEach((handler) => handler(payload));
+    };
+
+    socket.onerror = (event) => {
+      console.error(`${logPrefix} socket error`, event);
+      errorListeners.forEach((handler) => handler(event));
+    };
+
+    socket.onclose = (event) => {
+      console.debug(`${logPrefix} closed`, {
+        code: event.code,
+        reason: event.reason,
+        wasClean: event.wasClean,
+      });
+      socket = null;
+      if (!isExplicitDisconnect) {
+        closeListeners.forEach((handler) => handler(event));
+      }
     };
   }
 
-  disconnect(code?: number, reason?: string): void {
-    this.socket?.close(code, reason);
-    this.socket = null;
+  function disconnect(code?: number, reason?: string): void {
+    if (!socket) return;
+    isExplicitDisconnect = true;
+    pendingMessages = [];
+    console.debug(`${logPrefix} disconnect`, { code, reason });
+    socket.close(code, reason);
   }
 
-  send(message: TClientMessage): void {
-    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+  function send(message: TClientMessage): void {
+    const payload = typeof message === "string" ? message : JSON.stringify(message);
+
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      pendingMessages.push(payload);
+      console.debug(`${logPrefix} queued message`, { queueSize: pendingMessages.length });
       return;
     }
 
-    const payload =
-      typeof message === "string" ? message : JSON.stringify(message as Record<string, unknown>);
-    this.socket.send(payload);
+    console.debug(`${logPrefix} send`, message);
+    socket.send(payload);
   }
 
-  subscribe(handler: WebSocketEventHandler<TServerMessage>): () => void {
-    this.listeners.add(handler);
-
-    return () => {
-      this.listeners.delete(handler);
-    };
+  function subscribe(handler: WebSocketEventHandler<TServerMessage>): () => void {
+    listeners.add(handler);
+    return () => listeners.delete(handler);
   }
+
+  function subscribeOpen(handler: WebSocketOpenHandler): () => void {
+    if (socket?.readyState === WebSocket.OPEN) handler();
+    openListeners.add(handler);
+    return () => openListeners.delete(handler);
+  }
+
+  function subscribeClose(handler: WebSocketCloseHandler): () => void {
+    closeListeners.add(handler);
+    return () => closeListeners.delete(handler);
+  }
+
+  function subscribeError(handler: WebSocketErrorHandler): () => void {
+    errorListeners.add(handler);
+    return () => errorListeners.delete(handler);
+  }
+
+  return {
+    connect,
+    disconnect,
+    send,
+    subscribe,
+    subscribeOpen,
+    subscribeClose,
+    subscribeError,
+    get isConnected() {
+      return socket?.readyState === WebSocket.OPEN;
+    },
+  } as const;
 }
+
+export type WebSocketService<TServerMessage, TClientMessage = string> = ReturnType<
+  typeof createWebSocketService<TServerMessage, TClientMessage>
+>;

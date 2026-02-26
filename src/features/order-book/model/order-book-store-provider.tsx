@@ -11,10 +11,9 @@ import { useStore } from "zustand";
 
 import {
   createOrderBookStore,
-  type OrderBookState,
-  type OrderBookStore,
   type OrderBookStoreApi,
 } from "@/features/order-book/model/order-book.store";
+import type { OrderBookState, OrderBookStore } from "@/features/order-book/types/order-book.types";
 
 const OrderBookStoreContext = createContext<OrderBookStoreApi | null>(null);
 
