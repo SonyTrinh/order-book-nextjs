@@ -1,6 +1,11 @@
+import type { NormalizedOrderBookState } from "@/features/order-book/model/order-book-engine";
+
 export interface OrderBookLevel {
-  price: number;
-  amount: number;
+  price: string;
+  quantity: string;
+  orderCount: number;
+  blockNumber: number;
+  logIndex: number;
 }
 
 export interface OrderBookLevelRaw {
@@ -14,14 +19,21 @@ export interface OrderBookLevelRaw {
 export interface OrderBookSnapshot {
   asks: OrderBookLevel[];
   bids: OrderBookLevel[];
-  symbol: string;
-  timestamp: number;
+  marketId: string;
+  timestamp: string;
+  levelCount: number;
 }
 
 export interface OrderBookSnapshotRaw {
   market_id: number;
   bids: OrderBookLevelRaw[];
   asks: OrderBookLevelRaw[];
+}
+
+export interface OrderBookDeltaRaw {
+  market_id: number;
+  bids?: OrderBookLevelRaw[];
+  asks?: OrderBookLevelRaw[];
 }
 
 export interface OrderBookSubscribeRequest {
@@ -42,7 +54,17 @@ export interface OrderBookSnapshotMessage {
   timestamp: string;
 }
 
-export type OrderBookWsMessage = OrderBookSnapshotMessage;
+export interface OrderBookDeltaMessage {
+  method: "update" | "delta";
+  channel: "orderbook";
+  type: "delta" | "update";
+  market_id: string;
+  data: OrderBookDeltaRaw;
+  level_count: number;
+  timestamp: string;
+}
+
+export type OrderBookWsMessage = OrderBookSnapshotMessage | OrderBookDeltaMessage;
 
 export interface OrderBookDelta {
   asks?: OrderBookLevelRaw[];
@@ -54,12 +76,23 @@ export interface OrderBookDelta {
 export interface OrderBookState {
   isConnected: boolean;
   snapshot: OrderBookSnapshot | null;
+  topBids: OrderBookLevel[];
+  topAsks: OrderBookLevel[];
+  isInitialized: boolean;
 }
 
 export interface OrderBookActions {
   setConnectionStatus: (isConnected: boolean) => void;
-  setSnapshot: (snapshot: OrderBookSnapshot) => void;
+  applySnapshotMessage: (message: OrderBookSnapshotMessage) => void;
+  applyDeltaMessage: (message: OrderBookDeltaMessage) => void;
   reset: () => void;
 }
 
 export type OrderBookStore = OrderBookState & OrderBookActions;
+
+export interface OrderBookStoreInternalState extends OrderBookState {
+  normalized: NormalizedOrderBookState | null;
+}
+
+export type OrderBookStoreInternal = Omit<OrderBookStore, keyof OrderBookState> &
+  OrderBookStoreInternalState;

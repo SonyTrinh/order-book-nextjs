@@ -6,9 +6,9 @@ import type {
   WebSocketServiceOptions,
 } from "./websocket-service.types";
 
-export function createWebSocketService<TServerMessage, TClientMessage = string>(
+export const createWebSocketService = <TServerMessage, TClientMessage = string>(
   options: WebSocketServiceOptions,
-) {
+) => {
   let socket: WebSocket | null = null;
   let isExplicitDisconnect = false;
   let pendingMessages: string[] = [];
@@ -19,7 +19,7 @@ export function createWebSocketService<TServerMessage, TClientMessage = string>(
   const closeListeners = new Set<WebSocketCloseHandler>();
   const errorListeners = new Set<WebSocketErrorHandler>();
 
-  function connect(): void {
+  const connect = () => {
     if (socket && socket.readyState <= WebSocket.OPEN) {
       console.debug(`${logPrefix} connect skipped (already connecting/open)`);
       return;
@@ -68,17 +68,17 @@ export function createWebSocketService<TServerMessage, TClientMessage = string>(
         closeListeners.forEach((handler) => handler(event));
       }
     };
-  }
+  };
 
-  function disconnect(code?: number, reason?: string): void {
+  const disconnect = (code?: number, reason?: string) => {
     if (!socket) return;
     isExplicitDisconnect = true;
     pendingMessages = [];
     console.debug(`${logPrefix} disconnect`, { code, reason });
     socket.close(code, reason);
-  }
+  };
 
-  function send(message: TClientMessage): void {
+  const send = (message: TClientMessage) => {
     const payload = typeof message === "string" ? message : JSON.stringify(message);
 
     if (!socket || socket.readyState !== WebSocket.OPEN) {
@@ -89,28 +89,28 @@ export function createWebSocketService<TServerMessage, TClientMessage = string>(
 
     console.debug(`${logPrefix} send`, message);
     socket.send(payload);
-  }
+  };
 
-  function subscribe(handler: WebSocketEventHandler<TServerMessage>): () => void {
+  const subscribe = (handler: WebSocketEventHandler<TServerMessage>) => {
     listeners.add(handler);
     return () => listeners.delete(handler);
-  }
+  };
 
-  function subscribeOpen(handler: WebSocketOpenHandler): () => void {
+  const subscribeOpen = (handler: WebSocketOpenHandler) => {
     if (socket?.readyState === WebSocket.OPEN) handler();
     openListeners.add(handler);
     return () => openListeners.delete(handler);
-  }
+  };
 
-  function subscribeClose(handler: WebSocketCloseHandler): () => void {
+  const subscribeClose = (handler: WebSocketCloseHandler) => {
     closeListeners.add(handler);
     return () => closeListeners.delete(handler);
-  }
+  };
 
-  function subscribeError(handler: WebSocketErrorHandler): () => void {
+  const subscribeError = (handler: WebSocketErrorHandler) => {
     errorListeners.add(handler);
     return () => errorListeners.delete(handler);
-  }
+  };
 
   return {
     connect,
@@ -124,7 +124,7 @@ export function createWebSocketService<TServerMessage, TClientMessage = string>(
       return socket?.readyState === WebSocket.OPEN;
     },
   } as const;
-}
+};
 
 export type WebSocketService<TServerMessage, TClientMessage = string> = ReturnType<
   typeof createWebSocketService<TServerMessage, TClientMessage>

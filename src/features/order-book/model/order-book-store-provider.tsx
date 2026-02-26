@@ -44,8 +44,27 @@ export const useOrderBookStore = <TSelected,>(
   return useStore(store, selector);
 };
 
+export const useOrderBookStoreApi = (): OrderBookStoreApi => {
+  const store = useContext(OrderBookStoreContext);
+
+  if (!store) {
+    throw new Error("useOrderBookStoreApi must be used within OrderBookStoreProvider");
+  }
+
+  return store;
+};
+
 export const useOrderBookIsConnected = (): boolean =>
   useOrderBookStore((state) => state.isConnected);
 
+export const useOrderBookIsInitialized = (): boolean =>
+  useOrderBookStore((state) => state.isInitialized);
+
 export const useOrderBookSnapshot = (): OrderBookState["snapshot"] =>
   useOrderBookStore((state) => state.snapshot);
+
+export const useOrderBookTopBids = (): OrderBookState["topBids"] =>
+  useOrderBookStore((state) => state.topBids);
+
+export const useOrderBookTopAsks = (): OrderBookState["topAsks"] =>
+  useOrderBookStore((state) => state.topAsks);
