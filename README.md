@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+This is a [Next.js](https://nextjs.org) order-book project with a feature-based architecture.
 
 ## Getting Started
 
-First, run the development server:
+Install dependencies and run the development server:
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
+
+- `npm run dev` - start local server
+- `npm run build` - build production bundle
+- `npm run start` - start production server
+- `npm run lint` - run ESLint with no warnings allowed
+- `npm run lint:fix` - fix auto-fixable ESLint issues
+- `npm run typecheck` - run TypeScript checks
+- `npm run format` - format code with Prettier
+- `npm run format:check` - check formatting
+
+## Folder Structure
+
+```text
+app/                               # Next.js app router entry points (UI to be implemented later)
+src/
+  features/
+    order-book/
+      api/                         # Feature-level API and websocket adapters
+      model/                       # Feature state (Zustand store)
+      types/                       # Feature contracts
+  shared/
+    api/                           # API client and transport-level types
+    config/                        # Environment + runtime config
+    services/websocket/            # Generic websocket service skeleton
+    store/                         # Store creation and selector helpers
+```
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
+## Notes
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- UI is intentionally not implemented yet.
+- Zustand stores should be consumed with selective selectors (for example, `store.use.someSlice()`).
