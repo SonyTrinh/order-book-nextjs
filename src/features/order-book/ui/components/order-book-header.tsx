@@ -3,7 +3,6 @@
 import { memo, type ReactNode } from "react";
 
 import {
-  useOrderBookIsConnected,
   useOrderBookIsInitialized,
   useOrderBookSnapshot,
 } from "@/features/order-book/model/order-book-store-provider";
@@ -11,7 +10,6 @@ import PairSelector from "@/features/order-book/ui/components/pair-selector";
 import { formatTimestamp } from "@/features/order-book/ui/order-book-view.utils";
 
 const OrderBookHeader = (): ReactNode => {
-  const isConnected = useOrderBookIsConnected();
   const isInitialized = useOrderBookIsInitialized();
   const snapshot = useOrderBookSnapshot();
 
@@ -26,15 +24,6 @@ const OrderBookHeader = (): ReactNode => {
       </div>
       <div className="flex items-center gap-2">
         <PairSelector />
-        <span
-          className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-            isConnected
-              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
-              : "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300"
-          }`}
-        >
-          {isConnected ? "Connected" : "Disconnected"}
-        </span>
         <span
           className={`rounded-full px-2.5 py-1 text-xs font-medium ${
             isInitialized

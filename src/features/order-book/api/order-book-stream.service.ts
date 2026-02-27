@@ -16,22 +16,16 @@ interface StartOrderBookStreamParams {
 
 const isSnapshotMessage = (message: OrderBookWsMessage): message is OrderBookSnapshotMessage =>
   message.type === "snapshot" &&
-  message.method === "snapshot" &&
   message.channel === "orderbook" &&
   typeof message.market_id === "string";
 
-const isDeltaMessage = (message: OrderBookWsMessage): message is OrderBookDeltaMessage =>
-  (message.type === "delta" || message.type === "update") &&
-  (message.method === "delta" || message.method === "update") &&
+const isUpdateMessage = (message: OrderBookWsMessage): message is OrderBookDeltaMessage =>
+  message.type === "update" &&
   message.channel === "orderbook" &&
   typeof message.market_id === "string";
 
 const handleOrderBookMessage = (store: OrderBookStoreApi, message: OrderBookWsMessage): void => {
   const state = store.getState();
-
-  if (!isSnapshotMessage(message) && !isDeltaMessage(message)) {
-    return;
-  }
 
   if (message.market_id !== state.selectedMarketId) {
     return;
@@ -42,8 +36,8 @@ const handleOrderBookMessage = (store: OrderBookStoreApi, message: OrderBookWsMe
     return;
   }
 
-  if (isDeltaMessage(message)) {
-    state.applyDeltaMessage(message);
+  if (isUpdateMessage(message)) {
+    state.applyUpdateMessage(message);
   }
 };
 

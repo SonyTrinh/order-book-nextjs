@@ -23,17 +23,6 @@ const createSideMap = (levels: OrderBookLevelRaw[]): Map<string, OrderBookLevelR
 
 const isZeroQuantity = (quantity: string): boolean => /^0+$/.test(quantity);
 
-const compareNumericStrings = (left: string, right: string): number => {
-  const leftBigInt = BigInt(left);
-  const rightBigInt = BigInt(right);
-
-  if (leftBigInt === rightBigInt) {
-    return 0;
-  }
-
-  return leftBigInt > rightBigInt ? 1 : -1;
-};
-
 const mapLevelToView = (level: OrderBookLevelRaw): OrderBookLevel => ({
   price: level.price,
   quantity: level.quantity,
@@ -85,31 +74,30 @@ export const applyOrderBookDelta = (
   levelCount: message.level_count,
 });
 
-const toSortedLevels = (
+const toOrderedLevels = (
   sideMap: Map<string, OrderBookLevelRaw>,
-  side: OrderBookSide,
+  _side: OrderBookSide,
   limit?: number,
 ): OrderBookLevel[] => {
-  const sorted = [...sideMap.values()].sort((left, right) => {
-    const compareResult = compareNumericStrings(left.price, right.price);
+  const result: OrderBookLevel[] = [];
 
-    if (side === "bids") {
-      return compareResult * -1;
+  for (const level of sideMap.values()) {
+    result.push(mapLevelToView(level));
+
+    if (typeof limit === "number" && result.length >= limit) {
+      break;
     }
+  }
 
-    return compareResult;
-  });
-
-  const levels = typeof limit === "number" ? sorted.slice(0, limit) : sorted;
-  return levels.map(mapLevelToView);
+  return result;
 };
 
 export const toOrderBookSnapshotView = (
   normalizedState: NormalizedOrderBookState,
 ): OrderBookSnapshot => ({
   marketId: normalizedState.marketId,
-  bids: toSortedLevels(normalizedState.bids, "bids"),
-  asks: toSortedLevels(normalizedState.asks, "asks"),
+  bids: toOrderedLevels(normalizedState.bids, "bids"),
+  asks: toOrderedLevels(normalizedState.asks, "asks"),
   timestamp: normalizedState.timestamp,
   levelCount: normalizedState.levelCount,
 });
@@ -118,6 +106,6 @@ export const selectOrderBookTopLevels = (
   normalizedState: NormalizedOrderBookState,
   depth: number,
 ): OrderBookTopLevels => ({
-  bids: toSortedLevels(normalizedState.bids, "bids", depth),
-  asks: toSortedLevels(normalizedState.asks, "asks", depth),
+  bids: toOrderedLevels(normalizedState.bids, "bids", depth),
+  asks: toOrderedLevels(normalizedState.asks, "asks", depth),
 });

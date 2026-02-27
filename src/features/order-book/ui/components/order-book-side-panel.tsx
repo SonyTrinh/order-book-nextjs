@@ -43,7 +43,7 @@ const OrderBookSidePanel = ({ title, side, levels }: OrderBookSidePanelProps): R
             </span>
           ) : null}
         </span>
-        <span className="text-right">Orders</span>
+        <span className="text-right">Quantity</span>
       </div>
       <div className="space-y-1">
         {rows.length === 0 ? (

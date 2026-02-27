@@ -50,7 +50,7 @@ const applySnapshotState = (message: OrderBookSnapshotMessage): OrderBookStoreIn
   };
 };
 
-const applyDeltaState = (
+const applyUpdateState = (
   previous: OrderBookStoreInternalState,
   message: OrderBookDeltaMessage,
 ): OrderBookStoreInternalState => {
@@ -85,9 +85,9 @@ const createOrderBookState: StateCreator<OrderBookStoreInternal, [], []> = (set,
       normalized: null,
     })),
   applySnapshotMessage: (message) => set(applySnapshotState(message)),
-  applyDeltaMessage: (message) => {
+  applyUpdateMessage: (message) => {
     const previous = get();
-    set(applyDeltaState(previous, message));
+    set(applyUpdateState(previous, message));
   },
   reset: () =>
     set({

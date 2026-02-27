@@ -29,7 +29,7 @@ const PairSelector = (): ReactNode => {
 
   const selectedMarketName = useMemo(() => {
     const selectedMarket = markets.find((market) => market.market_id === selectedMarketId);
-    return selectedMarket?.config.name ?? `Market ${selectedMarketId}`;
+    return selectedMarket?.config.name.split('/')[0] + '-PERP'
   }, [markets, selectedMarketId]);
 
   return (
@@ -68,8 +68,7 @@ const PairSelector = (): ReactNode => {
                         setIsOpen(false);
                       }}
                     >
-                      <span className="font-medium">{market.config.name}</span>
-                      <span className="text-xs text-zinc-500 dark:text-zinc-400">{market.market_id}</span>
+                      <span className="font-medium">{market.config.name.split('/')[0]}-PERP</span>
                     </button>
                   </li>
                 );

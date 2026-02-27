@@ -55,9 +55,9 @@ export interface OrderBookSnapshotMessage {
 }
 
 export interface OrderBookDeltaMessage {
-  method: "update" | "delta";
+  method: "update";
   channel: "orderbook";
-  type: "delta" | "update";
+  type: "update";
   market_id: string;
   data: OrderBookDeltaRaw;
   level_count: number;
@@ -79,7 +79,7 @@ export interface OrderBookActions {
   setConnectionStatus: (isConnected: boolean) => void;
   setSelectedMarketId: (marketId: string) => void;
   applySnapshotMessage: (message: OrderBookSnapshotMessage) => void;
-  applyDeltaMessage: (message: OrderBookDeltaMessage) => void;
+  applyUpdateMessage: (message: OrderBookDeltaMessage) => void;
   reset: () => void;
 }
 
