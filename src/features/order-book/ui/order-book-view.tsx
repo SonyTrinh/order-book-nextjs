@@ -6,82 +6,22 @@ import {
   useOrderBookIsConnected,
   useOrderBookIsInitialized,
   useOrderBookSelectedMarketId,
-  useSetOrderBookSelectedMarketId,
   useOrderBookSnapshot,
+  useSetOrderBookSelectedMarketId,
   useOrderBookTopAsks,
   useOrderBookTopBids,
 } from "@/features/order-book/model/order-book-store-provider";
 import type { OrderBookLevel } from "@/features/order-book/types/order-book.types";
 import { fetchMarkets } from "@/features/market/api/market.api";
 import type { Market } from "@/features/market/types/market.types";
+import {
+  formatCompactIntegerString,
+  formatIntegerString,
+  formatTimestamp,
+  toRows,
+} from "@/features/order-book/ui/order-book-view.utils";
 
 type OrderBookSide = "bids" | "asks";
-
-interface OrderBookRowModel extends OrderBookLevel {
-  cumulativeQuantity: bigint;
-}
-
-const formatIntegerString = (value: string): string => value.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-
-const COMPACT_SUFFIXES = ["", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc"];
-
-const formatCompactIntegerString = (value: string): string => {
-  const normalized = value.trim();
-  const isNegative = normalized.startsWith("-");
-  const unsigned = isNegative ? normalized.slice(1) : normalized;
-
-  if (!/^\d+$/.test(unsigned)) {
-    return value;
-  }
-
-  const digits = unsigned.replace(/^0+(?=\d)/, "");
-  const groupIndex = Math.floor((digits.length - 1) / 3);
-  const suffix = COMPACT_SUFFIXES[groupIndex];
-
-  if (!suffix) {
-    return `${isNegative ? "-" : ""}${formatIntegerString(digits)}`;
-  }
-
-  const integerDigits = digits.length - groupIndex * 3;
-  const integerPart = digits.slice(0, integerDigits);
-  const fractionalPartRaw = digits.slice(integerDigits, integerDigits + 2);
-  const fractionalPart = fractionalPartRaw.replace(/0+$/, "");
-  const compact = fractionalPart ? `${integerPart}.${fractionalPart}` : integerPart;
-
-  return `${isNegative ? "-" : ""}${compact}${suffix}`;
-};
-
-const toBigIntSafe = (value: string): bigint => {
-  try {
-    return BigInt(value);
-  } catch {
-    return BigInt(0);
-  }
-};
-
-const formatTimestamp = (timestamp: string): string => {
-  const milliseconds = Number(toBigIntSafe(timestamp) / BigInt(1_000_000));
-  const date = new Date(milliseconds);
-
-  if (Number.isNaN(date.getTime())) {
-    return "-";
-  }
-
-  return date.toLocaleTimeString();
-};
-
-const toRows = (levels: OrderBookLevel[]): OrderBookRowModel[] => {
-  let cumulative = BigInt(0);
-
-  return levels.map((level) => {
-    cumulative += toBigIntSafe(level.quantity);
-
-    return {
-      ...level,
-      cumulativeQuantity: cumulative,
-    };
-  });
-};
 
 const PairSelector = memo(function PairSelector(): ReactNode {
   const selectedMarketId = useOrderBookSelectedMarketId();

@@ -1,5 +1,3 @@
-import type { NormalizedOrderBookState } from "@/features/order-book/model/order-book-engine";
-
 export interface OrderBookLevel {
   price: string;
   quantity: string;
@@ -40,7 +38,7 @@ export interface OrderBookSubscribeRequest {
   method: "subscribe";
   params: {
     channel: "orderbook";
-    market_ids: number[];
+    market_ids?: number[];
   };
 }
 
@@ -66,13 +64,6 @@ export interface OrderBookDeltaMessage {
 
 export type OrderBookWsMessage = OrderBookSnapshotMessage | OrderBookDeltaMessage;
 
-export interface OrderBookDelta {
-  asks?: OrderBookLevelRaw[];
-  bids?: OrderBookLevelRaw[];
-  market_id: string;
-  timestamp: string;
-}
-
 export interface OrderBookState {
   isConnected: boolean;
   snapshot: OrderBookSnapshot | null;
@@ -92,9 +83,3 @@ export interface OrderBookActions {
 
 export type OrderBookStore = OrderBookState & OrderBookActions;
 
-export interface OrderBookStoreInternalState extends OrderBookState {
-  normalized: NormalizedOrderBookState | null;
-}
-
-export type OrderBookStoreInternal = Omit<OrderBookStore, keyof OrderBookState> &
-  OrderBookStoreInternalState;

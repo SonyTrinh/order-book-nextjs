@@ -5,6 +5,7 @@ import type { StoreApi } from "zustand";
 import {
   applyOrderBookDelta,
   createNormalizedOrderBookFromSnapshot,
+  type NormalizedOrderBookState,
   selectOrderBookTopLevels,
   toOrderBookSnapshotView,
 } from "@/features/order-book/model/order-book-engine";
@@ -13,11 +14,17 @@ import type {
   OrderBookSnapshotMessage,
   OrderBookState,
   OrderBookStore,
-  OrderBookStoreInternal,
-  OrderBookStoreInternalState,
 } from "@/features/order-book/types/order-book.types";
 
 const DEFAULT_TOP_LEVEL_DEPTH = 20;
+
+interface OrderBookStoreInternalState extends OrderBookState {
+  normalized: NormalizedOrderBookState | null;
+}
+
+type OrderBookStoreInternal = OrderBookStore & {
+  normalized: NormalizedOrderBookState | null;
+};
 
 export const defaultOrderBookState: OrderBookState = {
   isConnected: false,

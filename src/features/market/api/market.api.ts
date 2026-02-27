@@ -14,27 +14,50 @@ const MARKETS_ENDPOINT = "/markets";
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
-  const isMarketItemDto = (value: unknown): value is Market => {
+interface MarketConfigDto {
+  name: string;
+  quote: string;
+  step_size: string;
+  step_price: string;
+  maintenance_margin_factor: string;
+  max_leverage: string;
+  min_order_size: string;
+  unlocked: boolean;
+  open_interest_limit: string;
+}
+
+interface MarketItemDto {
+  market_id: string;
+  config: MarketConfigDto;
+}
+
+const isMarketConfigDto = (value: unknown): value is MarketConfigDto => {
   if (!isRecord(value)) {
     return false;
   }
 
   return (
-    typeof value.market_id === "string" &&
-    isRecord(value.config) &&
-    typeof value.config.name === "string" &&
-    typeof value.config.quote === "string" &&
-    typeof value.config.step_size === "string" &&
-    typeof value.config.step_price === "string" &&
-    typeof value.config.maintenance_margin_factor === "string" &&
-    typeof value.config.max_leverage === "string" &&
-    typeof value.config.min_order_size === "string" &&
-    typeof value.config.unlocked === "boolean" &&
-    typeof value.config.open_interest_limit === "string"
+    typeof value.name === "string" &&
+    typeof value.quote === "string" &&
+    typeof value.step_size === "string" &&
+    typeof value.step_price === "string" &&
+    typeof value.maintenance_margin_factor === "string" &&
+    typeof value.max_leverage === "string" &&
+    typeof value.min_order_size === "string" &&
+    typeof value.unlocked === "boolean" &&
+    typeof value.open_interest_limit === "string"
   );
 };
 
-const toDomainMarket = (market: Market): Market => ({
+const isMarketItemDto = (value: unknown): value is MarketItemDto => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return typeof value.market_id === "string" && isMarketConfigDto(value.config);
+};
+
+const toDomainMarket = (market: MarketItemDto): Market => ({
   market_id: market.market_id,
   config: {
     name: market.config.name,
@@ -49,7 +72,7 @@ const toDomainMarket = (market: Market): Market => ({
   },
 });
 
-const readMarketsArray = (payload: unknown): Market[] | null => {
+const readMarketsArray = (payload: unknown): MarketItemDto[] | null => {
   if (!isRecord(payload)) {
     return null;
   }
@@ -69,7 +92,7 @@ const readMarketsArray = (payload: unknown): Market[] | null => {
   return null;
 };
 
-const parseMarketsResponse = (payload: MarketsResponse): MarketsResponse | null => {
+const parseMarketsResponse = (payload: unknown): MarketsResponse | null => {
   const markets = readMarketsArray(payload);
   if (!markets) {
     return null;
@@ -77,29 +100,6 @@ const parseMarketsResponse = (payload: MarketsResponse): MarketsResponse | null 
 
   return {
     markets: markets.map(toDomainMarket),
-    available: payload.available,
-    base_asset_symbol: payload.base_asset_symbol,
-    quote_asset_symbol: payload.quote_asset_symbol,
-    underlying: payload.underlying,
-    display_name: payload.display_name,
-    quote_volume_24h: payload.quote_volume_24h,
-    change_24h: payload.change_24h,
-    high_24h: payload.high_24h,
-    low_24h: payload.low_24h,
-    last_price: payload.last_price,
-    mark_price: payload.mark_price,
-    index_price: payload.index_price,
-    max_position_size: payload.max_position_size,
-    open_interest: payload.open_interest,
-    funding_interval: payload.funding_interval,
-    next_funding_time: payload.next_funding_time,
-    post_only: payload.post_only,
-    last_cumulative_funding: payload.last_cumulative_funding,
-    predicted_funding_rate: payload.predicted_funding_rate,
-    visible: payload.visible,
-    display_base_asset_symbol: payload.display_base_asset_symbol,
-    accumulated_funding: payload.accumulated_funding,
-    current_funding_rate: payload.current_funding_rate,
   };
 };
 
@@ -161,7 +161,7 @@ export const fetchMarkets = async (): Promise<FetchMarketsResult> => {
     };
   }
 
-  const parsed = parseMarketsResponse(result.data as MarketsResponse);
+  const parsed = parseMarketsResponse(result.data);
   if (!parsed) {
     return {
       ok: false,
