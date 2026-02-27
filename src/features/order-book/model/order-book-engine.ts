@@ -9,6 +9,8 @@ import type {
   OrderBookTopLevels,
 } from "@/features/order-book/types/order-book.types";
 
+export type { NormalizedOrderBookState };
+
 const createSideMap = (levels: OrderBookLevelRaw[]): Map<string, OrderBookLevelRaw> => {
   const sideMap = new Map<string, OrderBookLevelRaw>();
 

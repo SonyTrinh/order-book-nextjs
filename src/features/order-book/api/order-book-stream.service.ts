@@ -8,9 +8,9 @@ import type {
   OrderBookSnapshotMessage,
   OrderBookWsMessage,
 } from "@/features/order-book/types/order-book.types";
+import { env } from "@/shared/config/env";
 
 interface StartOrderBookStreamParams {
-  marketIds: number[];
   store: OrderBookStoreApi;
 }
 
@@ -47,14 +47,26 @@ const handleOrderBookMessage = (store: OrderBookStoreApi, message: OrderBookWsMe
   }
 };
 
-export const startOrderBookStream = ({ marketIds, store }: StartOrderBookStreamParams): (() => void) => {
+const resolveMarketId = (selectedMarketId: string): number => {
+  const parsed = Number(selectedMarketId);
+  const fallbackMarketId = env.orderBookMarketIds[0] ?? 1;
+
+  if (Number.isInteger(parsed) && parsed > 0) {
+    return parsed;
+  }
+
+  return fallbackMarketId;
+};
+
+export const startOrderBookStream = ({ store }: StartOrderBookStreamParams): (() => void) => {
   const unsubscribeMessage = orderBookWebSocketService.subscribe((message) => {
     handleOrderBookMessage(store, message);
   });
 
   const unsubscribeOpen = orderBookWebSocketService.subscribeOpen(() => {
     const state = store.getState();
-    const subscribeRequest = createOrderBookSubscribeRequest(marketIds);
+    const marketId = resolveMarketId(state.selectedMarketId);
+    const subscribeRequest = createOrderBookSubscribeRequest(marketId);
 
     state.setConnectionStatus(true);
     orderBookWebSocketService.send(subscribeRequest);
@@ -70,6 +82,16 @@ export const startOrderBookStream = ({ marketIds, store }: StartOrderBookStreamP
     state.setConnectionStatus(false);
   });
 
+  const unsubscribeStore = store.subscribe((state, previousState) => {
+    if (state.selectedMarketId === previousState.selectedMarketId) {
+      return;
+    }
+
+    const marketId = resolveMarketId(state.selectedMarketId);
+    const subscribeRequest = createOrderBookSubscribeRequest(marketId);
+    orderBookWebSocketService.send(subscribeRequest);
+  });
+
   orderBookWebSocketService.connect();
 
   return () => {
@@ -77,6 +99,7 @@ export const startOrderBookStream = ({ marketIds, store }: StartOrderBookStreamP
     unsubscribeOpen();
     unsubscribeClose();
     unsubscribeError();
+    unsubscribeStore();
     orderBookWebSocketService.disconnect(1000, "Order book stream stopped");
   };
 };
