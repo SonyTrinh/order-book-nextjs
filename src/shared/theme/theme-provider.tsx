@@ -23,7 +23,6 @@ const STORAGE_KEY = "order-book-theme";
 
 export const ThemeProvider = ({ children }: PropsWithChildren): ReactNode => {
   const [theme, setThemeState] = useState<Theme>("dark");
-  console.log("🚀 ~ ThemeProvider ~ theme:", theme)
 
   useEffect(() => {
     if (typeof window === "undefined") {
