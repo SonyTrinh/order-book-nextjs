@@ -6,10 +6,11 @@ import type {
   OrderBookWsMessage,
 } from "@/features/order-book/types/order-book.types";
 
-export const createOrderBookSubscribeRequest = (): OrderBookSubscribeRequest => ({
+export const createOrderBookSubscribeRequest = (marketIds: number[]): OrderBookSubscribeRequest => ({
   method: "subscribe",
   params: {
     channel: "orderbook",
+    market_ids: marketIds,
   },
 });
 

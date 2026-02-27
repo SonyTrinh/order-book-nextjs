@@ -1,3 +1,5 @@
+import type { Market } from "@/features/market";
+
 export interface OrderBookLevel {
   price: string;
   quantity: string;
@@ -83,3 +85,27 @@ export interface OrderBookActions {
 
 export type OrderBookStore = OrderBookState & OrderBookActions;
 
+export interface UseMarketsResult {
+  markets: Market[];
+  isLoading: boolean;
+  error: string | null;
+}
+
+export type OrderBookSide = "bids" | "asks";
+
+export interface NormalizedOrderBookState {
+  marketId: string;
+  bids: Map<string, OrderBookLevelRaw>;
+  asks: Map<string, OrderBookLevelRaw>;
+  timestamp: string;
+  levelCount: number;
+}
+
+export interface OrderBookTopLevels {
+  bids: OrderBookLevel[];
+  asks: OrderBookLevel[];
+}
+
+export interface OrderBookRowModel extends OrderBookLevel {
+  cumulativeQuantity: bigint;
+}

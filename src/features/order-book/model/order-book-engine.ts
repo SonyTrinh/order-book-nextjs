@@ -1,20 +1,13 @@
 import type {
+  NormalizedOrderBookState,
   OrderBookDeltaMessage,
   OrderBookLevel,
   OrderBookLevelRaw,
+  OrderBookSide,
   OrderBookSnapshot,
   OrderBookSnapshotMessage,
+  OrderBookTopLevels,
 } from "@/features/order-book/types/order-book.types";
-
-type OrderBookSide = "bids" | "asks";
-
-export interface NormalizedOrderBookState {
-  marketId: string;
-  bids: Map<string, OrderBookLevelRaw>;
-  asks: Map<string, OrderBookLevelRaw>;
-  timestamp: string;
-  levelCount: number;
-}
 
 const createSideMap = (levels: OrderBookLevelRaw[]): Map<string, OrderBookLevelRaw> => {
   const sideMap = new Map<string, OrderBookLevelRaw>();
@@ -118,11 +111,6 @@ export const toOrderBookSnapshotView = (
   timestamp: normalizedState.timestamp,
   levelCount: normalizedState.levelCount,
 });
-
-export interface OrderBookTopLevels {
-  bids: OrderBookLevel[];
-  asks: OrderBookLevel[];
-}
 
 export const selectOrderBookTopLevels = (
   normalizedState: NormalizedOrderBookState,

@@ -1,12 +1,12 @@
-import type { OrderBookLevel } from "@/features/order-book/types/order-book.types";
-
-export interface OrderBookRowModel extends OrderBookLevel {
-  cumulativeQuantity: bigint;
-}
+import type {
+  OrderBookLevel,
+  OrderBookRowModel,
+} from "@/features/order-book/types/order-book.types";
 
 const COMPACT_SUFFIXES = ["", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc"];
 
-export const formatIntegerString = (value: string): string => value.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+export const formatIntegerString = (value: string): string =>
+  value.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
 export const formatCompactIntegerString = (value: string): string => {
   const normalized = value.trim();
