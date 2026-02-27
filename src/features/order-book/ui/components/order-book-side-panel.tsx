@@ -3,10 +3,12 @@
 import { memo, useMemo, type ReactNode } from "react";
 import type { OrderBookLevel, OrderBookSide } from "@/features/order-book/types/order-book.types";
 import {
-  formatCompactIntegerString,
+  formatCoinAmount,
   formatIntegerString,
+  getDisplayDecimalsFromStepSize,
   toRows,
 } from "@/features/order-book/ui/order-book-view.utils";
+import { useCurrentMarket } from "@/features/order-book/ui/hooks/use-current-market";
 
 interface OrderBookSidePanelProps {
   title: string;
@@ -20,6 +22,8 @@ const OrderBookSidePanel = ({ title, side, levels }: OrderBookSidePanelProps): R
   const maxCumulative = lastRow ? lastRow.cumulativeQuantity : BigInt(0);
   const rowBgClass = side === "bids" ? "bg-emerald-500/10" : "bg-rose-500/10";
   const accentClass = side === "bids" ? "text-emerald-400" : "text-rose-400";
+  const { market, baseSymbol, quoteSymbol } = useCurrentMarket();
+  const sizeDecimals = market ? getDisplayDecimalsFromStepSize(market.config.step_size) : 4;
 
   return (
     <section className="rounded-xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
@@ -27,8 +31,22 @@ const OrderBookSidePanel = ({ title, side, levels }: OrderBookSidePanelProps): R
         {title}
       </h2>
       <div className="mb-2 grid grid-cols-3 gap-2 px-2 text-xs text-zinc-500 dark:text-zinc-400">
-        <span>Price</span>
-        <span className="text-right">Quantity</span>
+        <span>
+          Price{" "}
+          {quoteSymbol ? (
+            <span className="ml-1 text-[10px] uppercase text-zinc-400 dark:text-zinc-500">
+              {quoteSymbol}
+            </span>
+          ) : null}
+        </span>
+        <span className="text-right">
+          Size{" "}
+          {baseSymbol ? (
+            <span className="ml-1 text-[10px] uppercase text-zinc-400 dark:text-zinc-500">
+              {baseSymbol}
+            </span>
+          ) : null}
+        </span>
         <span className="text-right">Orders</span>
       </div>
       <div className="space-y-1">
@@ -41,6 +59,8 @@ const OrderBookSidePanel = ({ title, side, levels }: OrderBookSidePanelProps): R
                 ? 0
                 : Number((row.cumulativeQuantity * BigInt(10000)) / maxCumulative) / 100;
 
+            const formattedSize = formatCoinAmount(row.quantity, sizeDecimals);
+
             return (
               <div key={`${side}-${row.price}`} className="relative overflow-hidden rounded-md">
                 <div
@@ -52,13 +72,13 @@ const OrderBookSidePanel = ({ title, side, levels }: OrderBookSidePanelProps): R
                     className={`truncate font-medium tabular-nums ${accentClass}`}
                     title={formatIntegerString(row.price)}
                   >
-                    {formatCompactIntegerString(row.price)}
+                    {formatCoinAmount(row.price, sizeDecimals)}
                   </span>
                   <span
                     className="truncate text-right font-mono tabular-nums text-zinc-800 dark:text-zinc-200"
-                    title={formatIntegerString(row.quantity)}
+                    title={formattedSize}
                   >
-                    {formatCompactIntegerString(row.quantity)}
+                    {formattedSize}
                   </span>
                   <span className="text-right tabular-nums text-zinc-500 dark:text-zinc-400">
                     {row.orderCount}

@@ -3,36 +3,10 @@ import type {
   OrderBookRowModel,
 } from "@/features/order-book/types/order-book.types";
 
-const COMPACT_SUFFIXES = ["", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc"];
+const BASE_UNDERLYING_DECIMALS = 18;
 
 export const formatIntegerString = (value: string): string =>
   value.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-
-export const formatCompactIntegerString = (value: string): string => {
-  const normalized = value.trim();
-  const isNegative = normalized.startsWith("-");
-  const unsigned = isNegative ? normalized.slice(1) : normalized;
-
-  if (!/^\d+$/.test(unsigned)) {
-    return value;
-  }
-
-  const digits = unsigned.replace(/^0+(?=\d)/, "");
-  const groupIndex = Math.floor((digits.length - 1) / 3);
-  const suffix = COMPACT_SUFFIXES[groupIndex];
-
-  if (!suffix) {
-    return `${isNegative ? "-" : ""}${formatIntegerString(digits)}`;
-  }
-
-  const integerDigits = digits.length - groupIndex * 3;
-  const integerPart = digits.slice(0, integerDigits);
-  const fractionalPartRaw = digits.slice(integerDigits, integerDigits + 2);
-  const fractionalPart = fractionalPartRaw.replace(/0+$/, "");
-  const compact = fractionalPart ? `${integerPart}.${fractionalPart}` : integerPart;
-
-  return `${isNegative ? "-" : ""}${compact}${suffix}`;
-};
 
 export const toBigIntSafe = (value: string): bigint => {
   try {
@@ -64,4 +38,54 @@ export const toRows = (levels: OrderBookLevel[]): OrderBookRowModel[] => {
       cumulativeQuantity: cumulative,
     };
   });
+};
+
+export const formatCoinAmount = (
+  raw: string,
+  displayDecimals: number,
+  underlyingDecimals: number = BASE_UNDERLYING_DECIMALS,
+): string => {
+  if (underlyingDecimals === 0) {
+    return formatIntegerString(raw);
+  }
+
+  const value = toBigIntSafe(raw);
+  const scale = BigInt(10) ** BigInt(underlyingDecimals);
+  const integerPart = value / scale;
+  const fractionalPart = value % scale;
+
+  if (displayDecimals <= 0) {
+    return formatIntegerString(integerPart.toString());
+  }
+
+  const fractionalStringFull = fractionalPart.toString().padStart(underlyingDecimals, "0");
+  const fractionalString = fractionalStringFull.slice(0, displayDecimals).replace(/0+$/, "");
+  const integerFormatted = formatIntegerString(integerPart.toString());
+
+  if (!fractionalString) {
+    return integerFormatted;
+  }
+
+  return `${integerFormatted}.${fractionalString}`;
+};
+
+export const getDisplayDecimalsFromStepSize = (stepSize: string): number => {
+  const normalized = stepSize.trim();
+
+  if (!/^10*$/.test(normalized)) {
+    return 4;
+  }
+
+  const exponent = normalized.length - 1;
+  const decimals = BASE_UNDERLYING_DECIMALS - exponent;
+
+  if (decimals < 0) {
+    return 0;
+  }
+
+  if (decimals > BASE_UNDERLYING_DECIMALS) {
+    return BASE_UNDERLYING_DECIMALS;
+  }
+
+  return decimals;
 };
