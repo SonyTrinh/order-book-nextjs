@@ -2,12 +2,7 @@
 
 import { memo, useMemo, type ReactNode } from "react";
 import type { OrderBookLevel, OrderBookSide } from "@/features/order-book/types/order-book.types";
-import {
-  formatCoinAmount,
-  formatIntegerString,
-  getDisplayDecimalsFromStepSize,
-  toRows,
-} from "@/features/order-book/ui/order-book-view.utils";
+import { formatCoinAmount, getDisplayDecimalsFromStepSize, toRows } from "@/features/order-book/ui/order-book-view.utils";
 import { useCurrentMarket } from "@/features/order-book/ui/hooks/use-current-market";
 
 interface OrderBookSidePanelProps {
@@ -24,6 +19,7 @@ const OrderBookSidePanel = ({ title, side, levels }: OrderBookSidePanelProps): R
   const accentClass = side === "bids" ? "text-emerald-400" : "text-rose-400";
   const { market, baseSymbol, quoteSymbol } = useCurrentMarket();
   const sizeDecimals = market ? getDisplayDecimalsFromStepSize(market.config.step_size) : 4;
+  const priceDecimals = market ? getDisplayDecimalsFromStepSize(market.config.step_price) : 2;
 
   return (
     <section className="rounded-xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
@@ -60,6 +56,7 @@ const OrderBookSidePanel = ({ title, side, levels }: OrderBookSidePanelProps): R
                 : Number((row.cumulativeQuantity * BigInt(10000)) / maxCumulative) / 100;
 
             const formattedSize = formatCoinAmount(row.quantity, sizeDecimals);
+            const formattedPrice = formatCoinAmount(row.price, priceDecimals);
 
             return (
               <div key={`${side}-${row.price}`} className="relative overflow-hidden rounded-md">
@@ -70,9 +67,9 @@ const OrderBookSidePanel = ({ title, side, levels }: OrderBookSidePanelProps): R
                 <div className="relative grid grid-cols-3 gap-2 px-2 py-1.5 text-sm">
                   <span
                     className={`truncate font-medium tabular-nums ${accentClass}`}
-                    title={formatIntegerString(row.price)}
+                    title={formattedPrice}
                   >
-                    {formatCoinAmount(row.price, sizeDecimals)}
+                    {formattedPrice}
                   </span>
                   <span
                     className="truncate text-right font-mono tabular-nums text-zinc-800 dark:text-zinc-200"
