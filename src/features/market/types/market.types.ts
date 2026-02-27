@@ -65,15 +65,3 @@ export type FetchMarketsResult =
       ok: false;
       error: MarketFetchError;
     };
-
-export interface MarketDto {
-  symbol: string;
-  baseAsset: string;
-  quoteAsset: string;
-  priceScale: number;
-  sizeScale: number;
-}
-
-export interface MarketsResponseDto {
-  markets: MarketDto[];
-}

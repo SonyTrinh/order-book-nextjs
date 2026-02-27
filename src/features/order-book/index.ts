@@ -5,3 +5,4 @@ export * from "@/features/order-book/model/order-book-stream-bootstrap";
 export * from "@/features/order-book/model/order-book-store-provider";
 export * from "@/features/order-book/model/order-book.store";
 export * from "@/features/order-book/types/order-book.types";
+export * from "@/features/order-book/ui/order-book-view";

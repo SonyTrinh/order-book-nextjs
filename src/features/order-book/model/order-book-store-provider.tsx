@@ -68,3 +68,9 @@ export const useOrderBookTopBids = (): OrderBookState["topBids"] =>
 
 export const useOrderBookTopAsks = (): OrderBookState["topAsks"] =>
   useOrderBookStore((state) => state.topAsks);
+
+export const useOrderBookSelectedMarketId = (): OrderBookState["selectedMarketId"] =>
+  useOrderBookStore((state) => state.selectedMarketId);
+
+export const useSetOrderBookSelectedMarketId = (): OrderBookStore["setSelectedMarketId"] =>
+  useOrderBookStore((state) => state.setSelectedMarketId);

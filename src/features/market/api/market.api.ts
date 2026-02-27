@@ -11,6 +11,29 @@ import type {
 
 const MARKETS_ENDPOINT = "/markets";
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+  const isMarketItemDto = (value: unknown): value is Market => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    typeof value.market_id === "string" &&
+    isRecord(value.config) &&
+    typeof value.config.name === "string" &&
+    typeof value.config.quote === "string" &&
+    typeof value.config.step_size === "string" &&
+    typeof value.config.step_price === "string" &&
+    typeof value.config.maintenance_margin_factor === "string" &&
+    typeof value.config.max_leverage === "string" &&
+    typeof value.config.min_order_size === "string" &&
+    typeof value.config.unlocked === "boolean" &&
+    typeof value.config.open_interest_limit === "string"
+  );
+};
+
 const toDomainMarket = (market: Market): Market => ({
   market_id: market.market_id,
   config: {
@@ -26,13 +49,34 @@ const toDomainMarket = (market: Market): Market => ({
   },
 });
 
+const readMarketsArray = (payload: unknown): Market[] | null => {
+  if (!isRecord(payload)) {
+    return null;
+  }
+
+  if (Array.isArray(payload.markets) && payload.markets.every(isMarketItemDto)) {
+    return payload.markets;
+  }
+
+  if (
+    isRecord(payload.data) &&
+    Array.isArray(payload.data.markets) &&
+    payload.data.markets.every(isMarketItemDto)
+  ) {
+    return payload.data.markets;
+  }
+
+  return null;
+};
+
 const parseMarketsResponse = (payload: MarketsResponse): MarketsResponse | null => {
-  if (!Array.isArray(payload)) {
+  const markets = readMarketsArray(payload);
+  if (!markets) {
     return null;
   }
 
   return {
-    markets: payload.markets.map(toDomainMarket),
+    markets: markets.map(toDomainMarket),
     available: payload.available,
     base_asset_symbol: payload.base_asset_symbol,
     quote_asset_symbol: payload.quote_asset_symbol,
@@ -75,7 +119,7 @@ const createError = (
         message,
       };
 
-const mapProblemToError = (result: ApiResult<MarketsResponse>): MarketFetchError => {
+const mapProblemToError = (result: ApiResult<unknown>): MarketFetchError => {
   const status = result.status ?? undefined;
 
   if (result.problem === "NETWORK_ERROR") {
@@ -108,7 +152,7 @@ const mapProblemToError = (result: ApiResult<MarketsResponse>): MarketFetchError
 };
 
 export const fetchMarkets = async (): Promise<FetchMarketsResult> => {
-  const result = await apiClient.get<MarketsResponse, ApiErrorPayload>(MARKETS_ENDPOINT);
+  const result = await apiClient.get<unknown, ApiErrorPayload>(MARKETS_ENDPOINT);
 
   if (!result.ok) {
     return {

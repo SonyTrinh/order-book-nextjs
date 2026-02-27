@@ -25,6 +25,7 @@ export const defaultOrderBookState: OrderBookState = {
   topBids: [],
   topAsks: [],
   isInitialized: false,
+  selectedMarketId: "1",
 };
 
 const applySnapshotState = (message: OrderBookSnapshotMessage): OrderBookStoreInternalState => {
@@ -34,6 +35,7 @@ const applySnapshotState = (message: OrderBookSnapshotMessage): OrderBookStoreIn
   return {
     ...defaultOrderBookState,
     isInitialized: true,
+    selectedMarketId: message.market_id,
     normalized,
     snapshot: toOrderBookSnapshotView(normalized),
     topBids: topLevels.bids,
@@ -65,6 +67,16 @@ const createOrderBookState: StateCreator<OrderBookStoreInternal, [], []> = (set,
   ...defaultOrderBookState,
   normalized: null,
   setConnectionStatus: (isConnected) => set({ isConnected }),
+  setSelectedMarketId: (marketId) =>
+    set((state) => ({
+      ...state,
+      selectedMarketId: marketId,
+      isInitialized: false,
+      snapshot: null,
+      topBids: [],
+      topAsks: [],
+      normalized: null,
+    })),
   applySnapshotMessage: (message) => set(applySnapshotState(message)),
   applyDeltaMessage: (message) => {
     const previous = get();

@@ -79,10 +79,12 @@ export interface OrderBookState {
   topBids: OrderBookLevel[];
   topAsks: OrderBookLevel[];
   isInitialized: boolean;
+  selectedMarketId: string;
 }
 
 export interface OrderBookActions {
   setConnectionStatus: (isConnected: boolean) => void;
+  setSelectedMarketId: (marketId: string) => void;
   applySnapshotMessage: (message: OrderBookSnapshotMessage) => void;
   applyDeltaMessage: (message: OrderBookDeltaMessage) => void;
   reset: () => void;

@@ -12,6 +12,9 @@ interface StartOrderBookStreamParams {
 
 const handleOrderBookMessage = (store: OrderBookStoreApi, message: OrderBookWsMessage): void => {
   const state = store.getState();
+  if (message.market_id !== state.selectedMarketId) {
+    return;
+  }
 
   if (message.type === "snapshot") {
     state.applySnapshotMessage(message);
