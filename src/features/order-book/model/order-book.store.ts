@@ -15,8 +15,7 @@ import type {
   OrderBookState,
   OrderBookStore,
 } from "@/features/order-book/types/order-book.types";
-
-const DEFAULT_TOP_LEVEL_DEPTH = 20;
+import { DEFAULT_TOP_LEVEL_DEPTH } from "@/features/order-book/model/order-book.constants";
 
 interface OrderBookStoreInternalState extends OrderBookState {
   normalized: NormalizedOrderBookState | null;

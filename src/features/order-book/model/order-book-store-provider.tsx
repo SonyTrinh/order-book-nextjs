@@ -14,6 +14,7 @@ import {
   type OrderBookStoreApi,
 } from "@/features/order-book/model/order-book.store";
 import type { OrderBookState, OrderBookStore } from "@/features/order-book/types/order-book.types";
+import { useThrottledValue } from "@/shared/hooks/use-throttled-value";
 
 const OrderBookStoreContext = createContext<OrderBookStoreApi | null>(null);
 
@@ -60,14 +61,20 @@ export const useOrderBookIsConnected = (): boolean =>
 export const useOrderBookIsInitialized = (): boolean =>
   useOrderBookStore((state) => state.isInitialized);
 
-export const useOrderBookSnapshot = (): OrderBookState["snapshot"] =>
-  useOrderBookStore((state) => state.snapshot);
+export const useOrderBookSnapshot = (): OrderBookState["snapshot"] => {
+  const snapshot = useOrderBookStore((state) => state.snapshot);
+  return useThrottledValue(snapshot, 1000);
+};
 
-export const useOrderBookTopBids = (): OrderBookState["topBids"] =>
-  useOrderBookStore((state) => state.topBids);
+export const useOrderBookTopBids = (): OrderBookState["topBids"] => {
+  const topBids = useOrderBookStore((state) => state.topBids);
+  return useThrottledValue(topBids, 1000);
+};
 
-export const useOrderBookTopAsks = (): OrderBookState["topAsks"] =>
-  useOrderBookStore((state) => state.topAsks);
+export const useOrderBookTopAsks = (): OrderBookState["topAsks"] => {
+  const topAsks = useOrderBookStore((state) => state.topAsks);
+  return useThrottledValue(topAsks, 1000);
+};
 
 export const useOrderBookSelectedMarketId = (): OrderBookState["selectedMarketId"] =>
   useOrderBookStore((state) => state.selectedMarketId);

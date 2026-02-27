@@ -2,16 +2,17 @@
 
 import { memo, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { OrderBookLevel, OrderBookSide } from "@/features/order-book/types/order-book.types";
+import { ORDER_BOOK_HIGHLIGHT_DURATION_MS } from "@/features/order-book/model/order-book.constants";
+import { useOrderBookIsInitialized } from "@/features/order-book/model/order-book-store-provider";
 import { formatCoinAmount, getDisplayDecimalsFromStepSize, toRows } from "@/features/order-book/ui/order-book-view.utils";
 import { useCurrentMarket } from "@/features/order-book/ui/hooks/use-current-market";
+import OrderBookSkeletonRow from "./order-book-skeleton";
 
 interface OrderBookSidePanelProps {
   title: string;
   side: OrderBookSide;
   levels: OrderBookLevel[];
 }
-
-const HIGHLIGHT_DURATION = 1500;
 
 const OrderBookSidePanel = ({ title, side, levels }: OrderBookSidePanelProps): ReactNode => {
   const rows = useMemo(() => toRows(levels), [levels]);
@@ -25,6 +26,7 @@ const OrderBookSidePanel = ({ title, side, levels }: OrderBookSidePanelProps): R
   const priceDecimals = market ? getDisplayDecimalsFromStepSize(market.config.step_price) : 2;
   const [highlightedPrices, setHighlightedPrices] = useState<Set<string>>(new Set());
   const highlightBgClass = side === "bids" ? "bg-emerald-500/20" : "bg-rose-500/20";
+  const isInitialized = useOrderBookIsInitialized();
 
   useEffect(() => {
     const previousByPrice = new Map(
@@ -57,7 +59,7 @@ const OrderBookSidePanel = ({ title, side, levels }: OrderBookSidePanelProps): R
         changed.forEach((price) => next.delete(price));
         return next;
       });
-    }, HIGHLIGHT_DURATION);
+    }, ORDER_BOOK_HIGHLIGHT_DURATION_MS);
 
     return () => {
       window.clearTimeout(timeoutId);
@@ -74,7 +76,7 @@ const OrderBookSidePanel = ({ title, side, levels }: OrderBookSidePanelProps): R
         <span className="text-right">
           Quantity{" "}
           {baseSymbol ? (
-            <span className="ml-1 text-[10px] uppercase text-slate-500">
+            <span className="ml-1 inline-flex items-center rounded border border-slate-600 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-slate-300">
               {baseSymbol}
             </span>
           ) : null}
@@ -82,14 +84,18 @@ const OrderBookSidePanel = ({ title, side, levels }: OrderBookSidePanelProps): R
         <span className="text-right">
           Price{" "}
           {quoteSymbol ? (
-            <span className="ml-1 text-[10px] uppercase text-slate-500">
+            <span className="ml-1 inline-flex items-center rounded border border-slate-600 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-slate-300">
               {quoteSymbol}
             </span>
           ) : null}
         </span>
       </div>
       <div className="space-y-1">
-        {rows.length === 0 ? (
+        {!isInitialized ? (
+          Array.from({ length: 20 }).map((_, index) => (
+            <OrderBookSkeletonRow key={`skeleton-${side}-${index}`} />
+          ))
+        ) : rows.length === 0 ? (
           <p className="px-2 py-4 text-sm text-slate-500">No levels yet.</p>
         ) : (
           rows.map((row) => {

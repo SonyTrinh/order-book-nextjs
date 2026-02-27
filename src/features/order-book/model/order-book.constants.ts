@@ -1,0 +1,4 @@
+export const DEFAULT_TOP_LEVEL_DEPTH = 20;
+
+export const ORDER_BOOK_HIGHLIGHT_DURATION_MS = 500;
+
