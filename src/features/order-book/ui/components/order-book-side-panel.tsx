@@ -19,13 +19,22 @@ const OrderBookSidePanel = ({ title, side, levels }: OrderBookSidePanelProps): R
   const previousRowsRef = useRef<OrderBookLevel[]>([]);
   const lastRow = rows.length > 0 ? rows[rows.length - 1] : undefined;
   const maxCumulative = lastRow ? lastRow.cumulativeQuantity : BigInt(0);
-  const rowBgClass = side === "bids" ? "bg-emerald-900/60" : "bg-rose-900/60";
-  const accentClass = side === "bids" ? "text-emerald-400" : "text-rose-400";
+  const rowBgClass =
+    side === "bids"
+      ? "bg-emerald-100 dark:bg-emerald-900/60"
+      : "bg-rose-100 dark:bg-rose-900/60";
+  const accentClass =
+    side === "bids"
+      ? "text-emerald-600 dark:text-emerald-400"
+      : "text-rose-600 dark:text-rose-400";
   const { market, baseSymbol, quoteSymbol } = useCurrentMarket();
   const sizeDecimals = market ? getDisplayDecimalsFromStepSize(market.config.step_size) : 4;
   const priceDecimals = market ? getDisplayDecimalsFromStepSize(market.config.step_price) : 2;
   const [highlightedPrices, setHighlightedPrices] = useState<Set<string>>(new Set());
-  const highlightBgClass = side === "bids" ? "bg-emerald-500/20" : "bg-rose-500/20";
+  const highlightBgClass =
+    side === "bids"
+      ? "bg-emerald-100 dark:bg-emerald-500/20"
+      : "bg-rose-100 dark:bg-rose-500/20";
   const isInitialized = useOrderBookIsInitialized();
 
   useEffect(() => {
@@ -67,16 +76,16 @@ const OrderBookSidePanel = ({ title, side, levels }: OrderBookSidePanelProps): R
   }, [rows]);
 
   return (
-    <section className="rounded-xl border border-zinc-800 bg-slate-950 p-3">
+    <section className="rounded-xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-slate-950">
       <h2 className={`mb-3 text-sm font-semibold uppercase tracking-wide ${accentClass}`}>
         {title}
       </h2>
-      <div className="mb-2 grid grid-cols-3 gap-2 px-2 text-xs text-slate-400">
+      <div className="mb-2 grid grid-cols-3 gap-2 px-2 text-xs text-zinc-500 dark:text-slate-400">
         <span>Total</span>
         <span className="text-right">
           Quantity{" "}
           {baseSymbol ? (
-            <span className="ml-1 inline-flex items-center rounded border border-slate-600 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-slate-300">
+            <span className="ml-1 inline-flex items-center rounded border border-zinc-400 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-zinc-700 dark:border-slate-600 dark:text-slate-300">
               {baseSymbol}
             </span>
           ) : null}
@@ -84,7 +93,7 @@ const OrderBookSidePanel = ({ title, side, levels }: OrderBookSidePanelProps): R
         <span className="text-right">
           Price{" "}
           {quoteSymbol ? (
-            <span className="ml-1 inline-flex items-center rounded border border-slate-600 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-slate-300">
+            <span className="ml-1 inline-flex items-center rounded border border-zinc-400 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-zinc-700 dark:border-slate-600 dark:text-slate-300">
               {quoteSymbol}
             </span>
           ) : null}
@@ -96,7 +105,7 @@ const OrderBookSidePanel = ({ title, side, levels }: OrderBookSidePanelProps): R
             <OrderBookSkeletonRow key={`skeleton-${side}-${index}`} />
           ))
         ) : rows.length === 0 ? (
-          <p className="px-2 py-4 text-sm text-slate-500">No levels yet.</p>
+          <p className="px-2 py-4 text-sm text-zinc-500 dark:text-slate-500">No levels yet.</p>
         ) : (
           rows.map((row) => {
             const depthPercent =
@@ -123,13 +132,13 @@ const OrderBookSidePanel = ({ title, side, levels }: OrderBookSidePanelProps): R
                   }`}
                 >
                   <span
-                    className="truncate font-mono tabular-nums text-slate-300"
+                    className="truncate font-mono tabular-nums text-zinc-700 dark:text-slate-300"
                     title={formattedTotal}
                   >
                     {formattedTotal}
                   </span>
                   <span
-                    className="truncate text-right font-mono tabular-nums text-slate-100"
+                    className="truncate text-right font-mono tabular-nums text-zinc-900 dark:text-slate-100"
                     title={formattedSize}
                   >
                     {formattedSize}

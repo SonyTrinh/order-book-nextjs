@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useEffect, useMemo, useState, type ReactNode } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 import {
   useOrderBookSelectedMarketId,
@@ -40,7 +41,9 @@ const PairSelector = (): ReactNode => {
         onClick={() => setIsOpen((previous) => !previous)}
       >
         <span>{selectedMarketName}</span>
-        <span className="text-xs text-zinc-500 dark:text-zinc-400">{isOpen ? "▲" : "▼"}</span>
+        <span className="text-xs text-zinc-500 dark:text-zinc-400">
+          {isOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+        </span>
       </button>
 
       {isOpen ? (

@@ -9,12 +9,12 @@ export const useThrottledValue = <T,>(value: T, delayMs: number): T => {
   }, [value]);
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
+    const intervalId = window.setInterval(() => {
       setThrottled(latestRef.current);
     }, delayMs);
 
     return () => {
-      clearInterval(intervalId);
+      window.clearInterval(intervalId);
     };
   }, [delayMs]);
 
