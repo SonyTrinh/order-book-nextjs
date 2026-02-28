@@ -1,7 +1,6 @@
 import { str as crc32Str } from "crc-32";
 import { CHECKSUM_DEPTH } from "./order-book.constants";
 
-/** Convert signed 32-bit CRC from crc-32 to unsigned 32-bit (0..4_294_967_295) for comparison. */
 function toUnsigned32(signed: number): number {
   return signed < 0 ? signed + 2 ** 32 : signed;
 }
@@ -64,5 +63,3 @@ export function verifyOrderBookChecksum(
   const computed = computeOrderBookChecksum(bids, asks, depth);
   return toUnsigned32(computed) === toUnsigned32(expectedChecksum);
 }
-
-export { CHECKSUM_DEPTH };

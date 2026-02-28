@@ -3,7 +3,6 @@ import {
   orderBookWebSocketService,
 } from "@/features/order-book/api/order-book-ws.service";
 import {
-  CHECKSUM_DEPTH,
   verifyOrderBookChecksum,
 } from "@/features/order-book/model/order-book-checksum";
 import type { OrderBookStoreApi } from "@/features/order-book/model/order-book.store";
@@ -64,8 +63,8 @@ const verifyMessageChecksum = (
     next.topBids.map(toChecksumLevel),
     next.topAsks.map(toChecksumLevel),
     checksum,
-    CHECKSUM_DEPTH,
   );
+
   if (!valid) {
     console.warn(
       `[Order book] ${messageKind} checksum mismatch; re-subscribing for fresh snapshot.`,
