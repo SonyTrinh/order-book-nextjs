@@ -52,6 +52,7 @@ export interface OrderBookSnapshotMessage {
   data: OrderBookSnapshotRaw;
   level_count: number;
   timestamp: string;
+  checksum?: number | string;
 }
 
 export interface OrderBookDeltaMessage {
@@ -62,6 +63,7 @@ export interface OrderBookDeltaMessage {
   data: OrderBookDeltaRaw;
   level_count: number;
   timestamp: string;
+  checksum?: number | string;
 }
 
 export type OrderBookWsMessage = OrderBookSnapshotMessage | OrderBookDeltaMessage;

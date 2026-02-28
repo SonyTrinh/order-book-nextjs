@@ -9,6 +9,7 @@ import {
 } from "react";
 import { useStore } from "zustand";
 
+import { ORDER_BOOK_UPDATE_THROTTLE_MS } from "@/features/order-book/model/order-book.constants";
 import {
   createOrderBookStore,
   type OrderBookStoreApi,
@@ -63,17 +64,17 @@ export const useOrderBookIsInitialized = (): boolean =>
 
 export const useOrderBookSnapshot = (): OrderBookState["snapshot"] => {
   const snapshot = useOrderBookStore((state) => state.snapshot);
-  return useThrottledValue(snapshot, 1000);
+  return useThrottledValue(snapshot, ORDER_BOOK_UPDATE_THROTTLE_MS);
 };
 
 export const useOrderBookTopBids = (): OrderBookState["topBids"] => {
   const topBids = useOrderBookStore((state) => state.topBids);
-  return useThrottledValue(topBids, 1000);
+  return useThrottledValue(topBids, ORDER_BOOK_UPDATE_THROTTLE_MS);
 };
 
 export const useOrderBookTopAsks = (): OrderBookState["topAsks"] => {
   const topAsks = useOrderBookStore((state) => state.topAsks);
-  return useThrottledValue(topAsks, 1000);
+  return useThrottledValue(topAsks, ORDER_BOOK_UPDATE_THROTTLE_MS);
 };
 
 export const useOrderBookSelectedMarketId = (): OrderBookState["selectedMarketId"] =>

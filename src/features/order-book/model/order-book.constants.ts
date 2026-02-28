@@ -2,3 +2,6 @@ export const DEFAULT_TOP_LEVEL_DEPTH = 20;
 
 export const ORDER_BOOK_HIGHLIGHT_DURATION_MS = 500;
 
+export const ORDER_BOOK_UPDATE_THROTTLE_MS = 250;
+
+export const CHECKSUM_DEPTH = 10;
