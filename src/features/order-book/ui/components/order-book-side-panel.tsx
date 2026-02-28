@@ -121,7 +121,10 @@ const OrderBookSidePanel = ({ title, side, levels }: OrderBookSidePanelProps): R
             const isHighlighted = highlightedPrices.has(row.price);
 
             return (
-              <div key={`${side}-${row.price}`} className="relative overflow-hidden rounded-md">
+              <div
+                key={`${side}-${row.price}`}
+                className="relative overflow-hidden rounded-md transition-transform duration-200 ease-out hover:scale-[1.02] origin-center"
+              >
                 <div
                   className={`absolute inset-y-0 ${side === "bids" ? "right-0" : "left-0"} ${rowBgClass}`}
                   style={{ width: `${depthPercent}%` }}
