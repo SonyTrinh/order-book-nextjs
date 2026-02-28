@@ -18,10 +18,10 @@ const OrderBookHeader = (): ReactNode => {
   const isDark = theme === "dark";
 
   return (
-    <header className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+    <header className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-slate-950">
       <div>
-        <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Order Book</h1>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        <h1 className="text-lg font-semibold text-zinc-900 dark:text-slate-100">Order Book</h1>
+        <p className="text-sm text-zinc-500 dark:text-slate-400">
           Market {snapshot?.marketId ?? "-"} | Last update:{" "}
           {snapshot ? formatTimestamp(snapshot.timestamp) : "-"}
         </p>
@@ -31,8 +31,8 @@ const OrderBookHeader = (): ReactNode => {
         <span
           className={`rounded-full px-2.5 py-1 text-xs font-medium ${
             isInitialized
-              ? "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300"
-              : "bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+              : "bg-zinc-200 text-zinc-600 dark:bg-slate-800 dark:text-slate-300"
           }`}
         >
           {isInitialized ? "Live" : "Waiting Snapshot"}
@@ -40,7 +40,7 @@ const OrderBookHeader = (): ReactNode => {
         <button
           type="button"
           onClick={toggleTheme}
-          className="inline-flex items-center gap-1 rounded-full border border-zinc-300 bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+          className="inline-flex items-center gap-1.5 rounded-full border border-zinc-300 bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-transparent dark:text-slate-100 dark:hover:bg-zinc-800"
         >
           {isDark ? (
             <>
