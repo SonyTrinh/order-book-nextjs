@@ -85,3 +85,15 @@ export const useSetOrderBookSelectedMarketId = (): OrderBookStore["setSelectedMa
 
 export const useOrderBookLastMessageType = (): OrderBookState["lastMessageType"] =>
   useOrderBookStore((state) => state.lastMessageType);
+
+export const useOrderBookTopLevelDepth = (): OrderBookState["topLevelDepth"] =>
+  useOrderBookStore((state) => state.topLevelDepth);
+
+export const useSetOrderBookTopLevelDepth = (): OrderBookStore["setTopLevelDepth"] =>
+  useOrderBookStore((state) => state.setTopLevelDepth);
+
+export const useOrderBookSpread = (): OrderBookState["spread"] =>
+  useOrderBookStore((state) => state.spread);
+
+export const useSetOrderBookSpread = (): OrderBookStore["setSpread"] =>
+  useOrderBookStore((state) => state.setSpread);

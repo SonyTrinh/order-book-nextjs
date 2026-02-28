@@ -8,6 +8,7 @@ import type {
   OrderBookSnapshotMessage,
   OrderBookTopLevels,
 } from "@/features/order-book/types/order-book.types";
+import { SPREAD_OPTIONS } from "@/features/order-book/model/order-book.constants";
 
 export type { NormalizedOrderBookState };
 
@@ -98,10 +99,76 @@ export const toOrderBookSnapshotView = (
   levelCount: normalizedState.levelCount,
 });
 
+const E18 = BigInt("1000000000000000000");
+
+const SPREAD_SCALES: readonly bigint[] = [
+  BigInt("10000000000000000"),
+  BigInt("100000000000000000"),
+  E18,
+];
+
+const spreadToScale = (spread: number): bigint => {
+  const idx = SPREAD_OPTIONS.findIndex((s) => Math.abs(s - spread) < 1e-12);
+  return idx >= 0 ? SPREAD_SCALES[idx] ?? E18 : E18;
+};
+
+export const aggregateLevelsBySpread = (
+  levels: OrderBookLevel[],
+  spread: number,
+  side: OrderBookSide,
+): OrderBookLevel[] => {
+  const scale = spreadToScale(spread);
+  const buckets = new Map<
+    string,
+    { quantity: bigint; orderCount: number; blockNumber: number; logIndex: number }
+  >();
+
+  for (const level of levels) {
+    const priceBig = BigInt(level.price);
+    const bucketPrice = (priceBig / scale) * scale;
+    const key = bucketPrice.toString();
+    const existing = buckets.get(key);
+    const qty = BigInt(level.quantity);
+    if (existing) {
+      existing.quantity += qty;
+      existing.orderCount += level.orderCount;
+    } else {
+      buckets.set(key, {
+        quantity: qty,
+        orderCount: level.orderCount,
+        blockNumber: level.blockNumber,
+        logIndex: level.logIndex,
+      });
+    }
+  }
+
+  const result: OrderBookLevel[] = [];
+  for (const [price, data] of buckets) {
+    result.push({
+      price,
+      quantity: data.quantity.toString(),
+      orderCount: data.orderCount,
+      blockNumber: data.blockNumber,
+      logIndex: data.logIndex,
+    });
+  }
+
+  return result.sort((a, b) =>
+    side === "bids"
+      ? Number(BigInt(b.price) - BigInt(a.price))
+      : Number(BigInt(a.price) - BigInt(b.price)),
+  );
+};
+
+
 export const selectOrderBookTopLevels = (
   normalizedState: NormalizedOrderBookState,
   depth: number,
-): OrderBookTopLevels => ({
-  bids: toOrderedLevels(normalizedState.bids, "bids", depth),
-  asks: toOrderedLevels(normalizedState.asks, "asks", depth),
-});
+  spread: number = 1,
+): OrderBookTopLevels => {
+  const rawBids = toOrderedLevels(normalizedState.bids, "bids", depth);
+  const rawAsks = toOrderedLevels(normalizedState.asks, "asks", depth);
+  const aggregatedBids = aggregateLevelsBySpread(rawBids, spread, "bids").slice(0, depth);
+  const aggregatedAsks = aggregateLevelsBySpread(rawAsks, spread, "asks").slice(0, depth);
+  return { bids: aggregatedBids, asks: aggregatedAsks };
+};

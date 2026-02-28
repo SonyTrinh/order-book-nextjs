@@ -15,7 +15,10 @@ import type {
   OrderBookState,
   OrderBookStore,
 } from "@/features/order-book/types/order-book.types";
-import { DEFAULT_TOP_LEVEL_DEPTH } from "@/features/order-book/model/order-book.constants";
+import {
+  DEFAULT_TOP_LEVEL_DEPTH,
+  SPREAD_OPTIONS,
+} from "@/features/order-book/model/order-book.constants";
 
 interface OrderBookStoreInternalState extends OrderBookState {
   normalized: NormalizedOrderBookState | null;
@@ -33,16 +36,24 @@ export const defaultOrderBookState: OrderBookState = {
   isInitialized: false,
   selectedMarketId: "1",
   lastMessageType: null,
+  topLevelDepth: DEFAULT_TOP_LEVEL_DEPTH,
+  spread: 0.01,
 };
 
-const applySnapshotState = (message: OrderBookSnapshotMessage): OrderBookStoreInternalState => {
+const applySnapshotState = (
+  message: OrderBookSnapshotMessage,
+  depth: number,
+  spread: number,
+): OrderBookStoreInternalState => {
   const normalized = createNormalizedOrderBookFromSnapshot(message);
-  const topLevels = selectOrderBookTopLevels(normalized, DEFAULT_TOP_LEVEL_DEPTH);
+  const topLevels = selectOrderBookTopLevels(normalized, depth, spread);
 
   return {
     ...defaultOrderBookState,
     isInitialized: true,
     selectedMarketId: message.market_id,
+    topLevelDepth: depth,
+    spread,
     normalized,
     snapshot: toOrderBookSnapshotView(normalized),
     topBids: topLevels.bids,
@@ -59,7 +70,9 @@ const applyUpdateState = (
   }
 
   const normalized = applyOrderBookDelta(previous.normalized, message);
-  const topLevels = selectOrderBookTopLevels(normalized, DEFAULT_TOP_LEVEL_DEPTH);
+  const depth = previous.topLevelDepth;
+  const spread = previous.spread;
+  const topLevels = selectOrderBookTopLevels(normalized, depth, spread);
 
   return {
     ...previous,
@@ -86,7 +99,42 @@ const createOrderBookState: StateCreator<OrderBookStoreInternal, [], []> = (set,
       normalized: null,
       lastMessageType: null,
     })),
-  applySnapshotMessage: (message) => set(applySnapshotState(message)),
+  setTopLevelDepth: (depth) =>
+    set((state) => {
+      if (!state.normalized || state.topLevelDepth === depth) return state;
+      const topLevels = selectOrderBookTopLevels(
+        state.normalized,
+        depth,
+        state.spread,
+      );
+      return {
+        ...state,
+        topLevelDepth: depth,
+        topBids: topLevels.bids,
+        topAsks: topLevels.asks,
+      };
+    }),
+  setSpread: (spread) =>
+    set((state) => {
+      const isValid = (SPREAD_OPTIONS as readonly number[]).includes(spread);
+      const nextSpread = isValid ? spread : 1;
+      if (!state.normalized || state.spread === nextSpread) return state;
+      const topLevels = selectOrderBookTopLevels(
+        state.normalized,
+        state.topLevelDepth,
+        nextSpread,
+      );
+      return {
+        ...state,
+        spread: nextSpread,
+        topBids: topLevels.bids,
+        topAsks: topLevels.asks,
+      };
+    }),
+  applySnapshotMessage: (message) => {
+    const { topLevelDepth, spread } = get();
+    set(applySnapshotState(message, topLevelDepth, spread));
+  },
   applyUpdateMessage: (message) => {
     const previous = get();
     set(applyUpdateState(previous, message));

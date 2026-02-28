@@ -78,11 +78,15 @@ export interface OrderBookState {
   isInitialized: boolean;
   selectedMarketId: string;
   lastMessageType: OrderBookLastMessageType;
+  topLevelDepth: number;
+  spread: number;
 }
 
 export interface OrderBookActions {
   setConnectionStatus: (isConnected: boolean) => void;
   setSelectedMarketId: (marketId: string) => void;
+  setTopLevelDepth: (depth: number) => void;
+  setSpread: (spread: number) => void;
   applySnapshotMessage: (message: OrderBookSnapshotMessage) => void;
   applyUpdateMessage: (message: OrderBookDeltaMessage) => void;
   reset: () => void;
