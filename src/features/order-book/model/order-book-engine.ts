@@ -76,20 +76,16 @@ export const applyOrderBookDelta = (
 
 const toOrderedLevels = (
   sideMap: Map<string, OrderBookLevelRaw>,
-  _side: OrderBookSide,
+  side: OrderBookSide,
   limit?: number,
 ): OrderBookLevel[] => {
-  const result: OrderBookLevel[] = [];
-
-  for (const level of sideMap.values()) {
-    result.push(mapLevelToView(level));
-
-    if (typeof limit === "number" && result.length >= limit) {
-      break;
-    }
-  }
-
-  return result;
+  const levels = Array.from(sideMap.values());
+  const sorted =
+    side === "bids"
+      ? levels.sort((a, b) => Number(BigInt(b.price) - BigInt(a.price)))
+      : levels.sort((a, b) => Number(BigInt(a.price) - BigInt(b.price)));
+  const limited = typeof limit === "number" ? sorted.slice(0, limit) : sorted;
+  return limited.map(mapLevelToView);
 };
 
 export const toOrderBookSnapshotView = (

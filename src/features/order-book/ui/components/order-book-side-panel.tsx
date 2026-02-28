@@ -3,7 +3,10 @@
 import { memo, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { OrderBookLevel, OrderBookSide } from "@/features/order-book/types/order-book.types";
 import { ORDER_BOOK_HIGHLIGHT_DURATION_MS } from "@/features/order-book/model/order-book.constants";
-import { useOrderBookIsInitialized } from "@/features/order-book/model/order-book-store-provider";
+import {
+  useOrderBookIsInitialized,
+  useOrderBookLastMessageType,
+} from "@/features/order-book/model/order-book-store-provider";
 import { formatCoinAmount, getDisplayDecimalsFromStepSize, toRows } from "@/features/order-book/ui/order-book-view.utils";
 import { useCurrentMarket } from "@/features/order-book/ui/hooks/use-current-market";
 import OrderBookSkeletonRow from "./order-book-skeleton";
@@ -31,13 +34,25 @@ const OrderBookSidePanel = ({ title, side, levels }: OrderBookSidePanelProps): R
   const sizeDecimals = market ? getDisplayDecimalsFromStepSize(market.config.step_size) : 4;
   const priceDecimals = market ? getDisplayDecimalsFromStepSize(market.config.step_price) : 2;
   const [highlightedPrices, setHighlightedPrices] = useState<Set<string>>(new Set());
+  const clearHighlightTimeoutRef = useRef<number | null>(null);
   const highlightBgClass =
     side === "bids"
       ? "bg-emerald-100 dark:bg-emerald-500/20"
       : "bg-rose-100 dark:bg-rose-500/20";
   const isInitialized = useOrderBookIsInitialized();
+  const lastMessageType = useOrderBookLastMessageType();
 
   useEffect(() => {
+    if (lastMessageType === "snapshot") {
+      setHighlightedPrices(new Set());
+      previousRowsRef.current = rows;
+      if (clearHighlightTimeoutRef.current !== null) {
+        window.clearTimeout(clearHighlightTimeoutRef.current);
+        clearHighlightTimeoutRef.current = null;
+      }
+      return;
+    }
+
     const previousByPrice = new Map(
       previousRowsRef.current.map((row) => [row.price, row.quantity]),
     );
@@ -62,21 +77,28 @@ const OrderBookSidePanel = ({ title, side, levels }: OrderBookSidePanelProps): R
       return next;
     });
 
-    const timeoutId = window.setTimeout(() => {
-      setHighlightedPrices((previous) => {
-        const next = new Set(previous);
-        changed.forEach((price) => next.delete(price));
-        return next;
-      });
-    }, ORDER_BOOK_HIGHLIGHT_DURATION_MS);
+    if (clearHighlightTimeoutRef.current === null) {
+      clearHighlightTimeoutRef.current = window.setTimeout(() => {
+        clearHighlightTimeoutRef.current = null;
+        setHighlightedPrices(new Set());
+      }, ORDER_BOOK_HIGHLIGHT_DURATION_MS);
+    }
+  }, [rows, lastMessageType]);
 
+  useEffect(() => {
     return () => {
-      window.clearTimeout(timeoutId);
+      if (clearHighlightTimeoutRef.current !== null) {
+        window.clearTimeout(clearHighlightTimeoutRef.current);
+      }
     };
-  }, [rows]);
+  }, []);
 
   return (
-    <section className="rounded-xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-slate-950">
+    <section
+      role="region"
+      aria-label={`Order book ${title}`}
+      className="rounded-xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-slate-950"
+    >
       <h2 className={`mb-3 text-sm font-semibold uppercase tracking-wide ${accentClass}`}>
         {title}
       </h2>

@@ -32,6 +32,7 @@ export const defaultOrderBookState: OrderBookState = {
   topAsks: [],
   isInitialized: false,
   selectedMarketId: "1",
+  lastMessageType: null,
 };
 
 const applySnapshotState = (message: OrderBookSnapshotMessage): OrderBookStoreInternalState => {
@@ -62,6 +63,7 @@ const applyUpdateState = (
 
   return {
     ...previous,
+    lastMessageType: "update",
     normalized,
     snapshot: toOrderBookSnapshotView(normalized),
     topBids: topLevels.bids,
@@ -82,6 +84,7 @@ const createOrderBookState: StateCreator<OrderBookStoreInternal, [], []> = (set,
       topBids: [],
       topAsks: [],
       normalized: null,
+      lastMessageType: null,
     })),
   applySnapshotMessage: (message) => set(applySnapshotState(message)),
   applyUpdateMessage: (message) => {

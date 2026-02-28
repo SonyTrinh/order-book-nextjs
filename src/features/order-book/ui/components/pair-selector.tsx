@@ -37,7 +37,10 @@ const PairSelector = (): ReactNode => {
     <div className="relative">
       <button
         type="button"
-        className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-800"
+        aria-label="Select trading pair"
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
+        className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-800 dark:focus:ring-slate-500 dark:focus:ring-offset-slate-950"
         onClick={() => setIsOpen((previous) => !previous)}
       >
         <span>{selectedMarketName}</span>
@@ -47,7 +50,10 @@ const PairSelector = (): ReactNode => {
       </button>
 
       {isOpen ? (
-        <div className="absolute z-20 mt-2 w-72 max-w-[85vw] rounded-xl border border-zinc-200 bg-white p-2 shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
+        <div
+          role="listbox"
+          className="absolute z-20 mt-2 w-72 max-w-[85vw] rounded-xl border border-zinc-200 bg-white p-2 shadow-xl dark:border-zinc-800 dark:bg-zinc-900"
+        >
           {isLoading ? (
             <p className="px-2 py-3 text-sm text-zinc-500 dark:text-zinc-400">Loading pairs...</p>
           ) : error ? (
@@ -61,7 +67,9 @@ const PairSelector = (): ReactNode => {
                   <li key={market.market_id}>
                     <button
                       type="button"
-                      className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm ${
+                      role="option"
+                      aria-selected={isActive}
+                      className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-inset dark:focus:ring-slate-500 ${
                         isActive
                           ? "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300"
                           : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"

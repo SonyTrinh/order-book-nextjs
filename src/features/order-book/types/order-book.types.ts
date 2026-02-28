@@ -68,6 +68,8 @@ export interface OrderBookDeltaMessage {
 
 export type OrderBookWsMessage = OrderBookSnapshotMessage | OrderBookDeltaMessage;
 
+export type OrderBookLastMessageType = "snapshot" | "update" | null;
+
 export interface OrderBookState {
   isConnected: boolean;
   snapshot: OrderBookSnapshot | null;
@@ -75,6 +77,7 @@ export interface OrderBookState {
   topAsks: OrderBookLevel[];
   isInitialized: boolean;
   selectedMarketId: string;
+  lastMessageType: OrderBookLastMessageType;
 }
 
 export interface OrderBookActions {

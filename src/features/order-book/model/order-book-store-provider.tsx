@@ -82,3 +82,6 @@ export const useOrderBookSelectedMarketId = (): OrderBookState["selectedMarketId
 
 export const useSetOrderBookSelectedMarketId = (): OrderBookStore["setSelectedMarketId"] =>
   useOrderBookStore((state) => state.setSelectedMarketId);
+
+export const useOrderBookLastMessageType = (): OrderBookState["lastMessageType"] =>
+  useOrderBookStore((state) => state.lastMessageType);

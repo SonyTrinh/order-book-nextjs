@@ -4,6 +4,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useMemo,
   useState,
   type PropsWithChildren,
   type ReactNode,
@@ -73,11 +74,10 @@ export const ThemeProvider = ({ children }: PropsWithChildren): ReactNode => {
     setThemeState((previous) => (previous === "dark" ? "light" : "dark"));
   };
 
-  const value: ThemeContextValue = {
-    theme,
-    toggleTheme,
-    setTheme,
-  };
+  const value = useMemo<ThemeContextValue>(
+    () => ({ theme, toggleTheme, setTheme }),
+    [theme],
+  );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };
