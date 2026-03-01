@@ -125,12 +125,7 @@ const OrderBookSidePanel = ({ title, side, levels }: OrderBookSidePanelProps): R
           ) : null}
         </span>
         <span className="text-right">
-          Total{" "}
-          {quoteSymbol ? (
-            <span className="ml-1 inline-flex items-center rounded border border-zinc-400 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-zinc-700 dark:border-slate-600 dark:text-slate-300">
-              {quoteSymbol}
-            </span>
-          ) : null}
+          Total
         </span>
       </div>
       <div className="space-y-1">

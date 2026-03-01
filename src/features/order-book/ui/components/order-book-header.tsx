@@ -1,22 +1,49 @@
 "use client";
 
-import { memo, type ReactNode } from "react";
+import { memo, useMemo, type ReactNode } from "react";
 import { Moon, Sun } from "lucide-react";
 
 import {
   useOrderBookIsInitialized,
-  useOrderBookSnapshot,
+  useOrderBookTopAsks,
+  useOrderBookTopBids,
 } from "@/features/order-book/model/order-book-store-provider";
 import PairSelector from "@/features/order-book/ui/components/pair-selector";
 import SpreadDepthSelector from "@/features/order-book/ui/components/spread-depth-selector";
-import { formatTimestamp } from "@/features/order-book/ui/order-book-view.utils";
+import {
+  toBigIntSafe,
+} from "@/features/order-book/ui/order-book-view.utils";
 import { useTheme } from "@/shared/theme/theme-provider";
+
+const NOTIONAL_SCALE = BigInt(10) ** BigInt(18);
+
+const sumNotional = (
+  levels: readonly { price: string; quantity: string }[],
+): bigint =>
+  levels.reduce(
+    (acc, l) =>
+      acc + (toBigIntSafe(l.price) * toBigIntSafe(l.quantity)) / NOTIONAL_SCALE,
+    BigInt(0),
+  );
 
 const OrderBookHeader = (): ReactNode => {
   const isInitialized = useOrderBookIsInitialized();
-  const snapshot = useOrderBookSnapshot();
+  const topBids = useOrderBookTopBids();
+  const topAsks = useOrderBookTopAsks();
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === "dark";
+
+  const { bidPercent, askPercent } = useMemo(() => {
+    const bidVol = sumNotional(topBids);
+    const askVol = sumNotional(topAsks);
+    const total = bidVol + askVol;
+    if (total === BigInt(0)) {
+      return { bidPercent: 50, askPercent: 50 };
+    }
+    const bidPct = Number((bidVol * BigInt(10000)) / total) / 100;
+    const askPct = Number((askVol * BigInt(10000)) / total) / 100;
+    return { bidPercent: bidPct, askPercent: askPct };
+  }, [topBids, topAsks]);
 
   const statusLabel = isInitialized ? "Live" : "Waiting Snapshot";
   const statusVariant = isInitialized ? "live" : "waiting";
@@ -38,9 +65,32 @@ const OrderBookHeader = (): ReactNode => {
             {statusLabel}
           </span>
         </div>
-        <p className="text-sm text-zinc-500 dark:text-slate-400">
-          Last update: {snapshot ? formatTimestamp(snapshot.timestamp) : "-"}
-        </p>
+        {isInitialized && (topBids.length > 0 || topAsks.length > 0) ? (
+          <div className="mt-2 flex w-full max-w-md items-center gap-2">
+            <span className="whitespace-nowrap text-xs text-zinc-900 dark:text-slate-100">
+              B{" "}
+              <span className="font-medium text-emerald-500 dark:text-emerald-400">
+                {bidPercent.toFixed(2)}%
+              </span>
+            </span>
+            <div className="relative h-2 flex-1 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+              <div
+                className="absolute inset-y-0 left-0 rounded-l-full bg-emerald-500 dark:bg-emerald-500"
+                style={{ width: `${bidPercent}%` }}
+              />
+              <div
+                className="absolute inset-y-0 rounded-r-full bg-rose-500 dark:bg-rose-500"
+                style={{ left: `${bidPercent}%`, width: `${askPercent}%` }}
+              />
+            </div>
+            <span className="whitespace-nowrap text-xs text-zinc-900 dark:text-slate-100">
+              <span className="font-medium text-rose-500 dark:text-rose-400">
+                {askPercent.toFixed(2)}%
+              </span>{" "}
+              S
+            </span>
+          </div>
+        ) : null}
       </div>
       <div className="flex items-center gap-2">
         <PairSelector />
