@@ -1,5 +1,10 @@
 import { apiClient } from "@/shared/api/api-client";
 
+import {
+  isMarketItemDto,
+  isRecordPayload,
+  type MarketItemDto,
+} from "@/features/market/api/market.api.utils";
 import type { ApiErrorPayload, ApiResult } from "@/shared/api/api-types";
 import type {
   FetchMarketsResult,
@@ -10,52 +15,6 @@ import type {
 } from "@/features/market/types/market.types";
 
 const MARKETS_ENDPOINT = "/markets";
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null;
-
-interface MarketConfigDto {
-  name: string;
-  quote: string;
-  step_size: string;
-  step_price: string;
-  maintenance_margin_factor: string;
-  max_leverage: string;
-  min_order_size: string;
-  unlocked: boolean;
-  open_interest_limit: string;
-}
-
-interface MarketItemDto {
-  market_id: string;
-  config: MarketConfigDto;
-}
-
-const isMarketConfigDto = (value: unknown): value is MarketConfigDto => {
-  if (!isRecord(value)) {
-    return false;
-  }
-
-  return (
-    typeof value.name === "string" &&
-    typeof value.quote === "string" &&
-    typeof value.step_size === "string" &&
-    typeof value.step_price === "string" &&
-    typeof value.maintenance_margin_factor === "string" &&
-    typeof value.max_leverage === "string" &&
-    typeof value.min_order_size === "string" &&
-    typeof value.unlocked === "boolean" &&
-    typeof value.open_interest_limit === "string"
-  );
-};
-
-const isMarketItemDto = (value: unknown): value is MarketItemDto => {
-  if (!isRecord(value)) {
-    return false;
-  }
-
-  return typeof value.market_id === "string" && isMarketConfigDto(value.config);
-};
 
 const toDomainMarket = (market: MarketItemDto): Market => ({
   market_id: market.market_id,
@@ -73,7 +32,7 @@ const toDomainMarket = (market: MarketItemDto): Market => ({
 });
 
 const readMarketsArray = (payload: unknown): MarketItemDto[] | null => {
-  if (!isRecord(payload)) {
+  if (!isRecordPayload(payload)) {
     return null;
   }
 
@@ -82,7 +41,7 @@ const readMarketsArray = (payload: unknown): MarketItemDto[] | null => {
   }
 
   if (
-    isRecord(payload.data) &&
+    isRecordPayload(payload.data) &&
     Array.isArray(payload.data.markets) &&
     payload.data.markets.every(isMarketItemDto)
   ) {
