@@ -7,7 +7,12 @@ import {
   useOrderBookIsInitialized,
   useOrderBookLastMessageType,
 } from "@/features/order-book/model/order-book-store-provider";
-import { formatCoinAmount, getDisplayDecimalsFromStepSize, toRows } from "@/features/order-book/ui/order-book-view.utils";
+import {
+  computeNotionalQuoteRaw,
+  formatCoinAmount,
+  getDisplayDecimalsFromStepSize,
+  toRows,
+} from "@/features/order-book/ui/order-book-view.utils";
 import { useCurrentMarket } from "@/features/order-book/ui/hooks/use-current-market";
 import OrderBookSkeletonRow from "./order-book-skeleton";
 
@@ -119,7 +124,14 @@ const OrderBookSidePanel = ({ title, side, levels }: OrderBookSidePanelProps): R
             </span>
           ) : null}
         </span>
-        <span className="text-right">Total</span>
+        <span className="text-right">
+          Total{" "}
+          {quoteSymbol ? (
+            <span className="ml-1 inline-flex items-center rounded border border-zinc-400 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-zinc-700 dark:border-slate-600 dark:text-slate-300">
+              {quoteSymbol}
+            </span>
+          ) : null}
+        </span>
       </div>
       <div className="space-y-1">
         {!isInitialized ? (
@@ -135,10 +147,8 @@ const OrderBookSidePanel = ({ title, side, levels }: OrderBookSidePanelProps): R
                 ? 0
                 : Number((row.cumulativeQuantity * BigInt(10000)) / maxCumulative) / 100;
             const formattedSize = formatCoinAmount(row.quantity, sizeDecimals);
-            const formattedTotal = formatCoinAmount(
-              row.cumulativeQuantity.toString(),
-              sizeDecimals,
-            );
+            const notionalRaw = computeNotionalQuoteRaw(row.price, row.quantity);
+            const formattedTotal = formatCoinAmount(notionalRaw, 2, 18);
             const formattedPrice = formatCoinAmount(row.price, priceDecimals);
             const isHighlighted = highlightedPrices.has(row.price);
 

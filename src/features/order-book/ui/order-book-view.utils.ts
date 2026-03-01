@@ -27,6 +27,13 @@ export const formatTimestamp = (timestamp: string): string => {
   return date.toLocaleTimeString();
 };
 
+export const computeNotionalQuoteRaw = (price: string, quantity: string): string => {
+  const p = toBigIntSafe(price);
+  const q = toBigIntSafe(quantity);
+  const scale = BigInt(10) ** BigInt(18);
+  return ((p * q) / scale).toString();
+};
+
 export const toRows = (levels: OrderBookLevel[]): OrderBookRowModel[] => {
   let cumulative = BigInt(0);
 
