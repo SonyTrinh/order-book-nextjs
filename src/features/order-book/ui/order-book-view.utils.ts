@@ -27,12 +27,22 @@ export const formatTimestamp = (timestamp: string): string => {
   return date.toLocaleTimeString();
 };
 
+const NOTIONAL_SCALE = BigInt(10) ** BigInt(18);
+
 export const computeNotionalQuoteRaw = (price: string, quantity: string): string => {
   const p = toBigIntSafe(price);
   const q = toBigIntSafe(quantity);
-  const scale = BigInt(10) ** BigInt(18);
-  return ((p * q) / scale).toString();
+  return ((p * q) / NOTIONAL_SCALE).toString();
 };
+
+export const sumNotional = (
+  levels: readonly { price: string; quantity: string }[],
+): bigint =>
+  levels.reduce(
+    (acc, l) =>
+      acc + (toBigIntSafe(l.price) * toBigIntSafe(l.quantity)) / NOTIONAL_SCALE,
+    BigInt(0),
+  );
 
 export const toRows = (levels: OrderBookLevel[]): OrderBookRowModel[] => {
   let cumulative = BigInt(0);
