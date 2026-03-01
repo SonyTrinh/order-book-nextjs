@@ -10,9 +10,16 @@ export const setApiAuthTokenResolver = (resolver: AuthTokenResolver): void => {
   authTokenResolver = resolver;
 };
 
+const getBaseUrl = (): string => {
+  if (typeof window !== "undefined") {
+    return "";
+  }
+  return env.apiBaseUrl;
+};
+
 const buildApiClient = (): ApisauceInstance => {
   const api = create({
-    baseURL: env.apiBaseUrl,
+    baseURL: getBaseUrl(),
     timeout: env.apiTimeoutMs,
   });
 

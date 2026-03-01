@@ -30,7 +30,8 @@ const PairSelector = (): ReactNode => {
 
   const selectedMarketName = useMemo(() => {
     const selectedMarket = markets.find((market) => market.market_id === selectedMarketId);
-    return selectedMarket?.config.name.split('/')[0] + '-PERP'
+    const base = selectedMarket?.config?.name?.split("/")[0];
+    return base ? `${base}-PERP` : "—-";
   }, [markets, selectedMarketId]);
 
   return (

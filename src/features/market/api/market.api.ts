@@ -14,7 +14,8 @@ import type {
   MarketsResponse,
 } from "@/features/market/types/market.types";
 
-const MARKETS_ENDPOINT = "/markets";
+const MARKETS_ENDPOINT =
+  typeof window !== "undefined" ? "/api/v1/markets" : "/markets";
 
 const toDomainMarket = (market: MarketItemDto): Market => ({
   market_id: market.market_id,
