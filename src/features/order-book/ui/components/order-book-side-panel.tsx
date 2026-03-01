@@ -103,16 +103,7 @@ const OrderBookSidePanel = ({ title, side, levels }: OrderBookSidePanelProps): R
         {title}
       </h2>
       <div className="mb-2 grid grid-cols-3 gap-2 px-2 text-xs text-zinc-500 dark:text-slate-400">
-        <span>Total</span>
-        <span className="text-right">
-          Quantity{" "}
-          {baseSymbol ? (
-            <span className="ml-1 inline-flex items-center rounded border border-zinc-400 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-zinc-700 dark:border-slate-600 dark:text-slate-300">
-              {baseSymbol}
-            </span>
-          ) : null}
-        </span>
-        <span className="text-right">
+        <span>
           Price{" "}
           {quoteSymbol ? (
             <span className="ml-1 inline-flex items-center rounded border border-zinc-400 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-zinc-700 dark:border-slate-600 dark:text-slate-300">
@@ -120,6 +111,15 @@ const OrderBookSidePanel = ({ title, side, levels }: OrderBookSidePanelProps): R
             </span>
           ) : null}
         </span>
+        <span className="text-right">
+          Amount{" "}
+          {baseSymbol ? (
+            <span className="ml-1 inline-flex items-center rounded border border-zinc-400 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-zinc-700 dark:border-slate-600 dark:text-slate-300">
+              {baseSymbol}
+            </span>
+          ) : null}
+        </span>
+        <span className="text-right">Total</span>
       </div>
       <div className="space-y-1">
         {!isInitialized ? (
@@ -157,10 +157,10 @@ const OrderBookSidePanel = ({ title, side, levels }: OrderBookSidePanelProps): R
                   }`}
                 >
                   <span
-                    className="truncate font-mono tabular-nums text-zinc-700 dark:text-slate-300"
-                    title={formattedTotal}
+                    className={`font-medium tabular-nums ${accentClass}`}
+                    title={formattedPrice}
                   >
-                    {formattedTotal}
+                    {formattedPrice}
                   </span>
                   <span
                     className="truncate text-right font-mono tabular-nums text-zinc-900 dark:text-slate-100"
@@ -169,10 +169,10 @@ const OrderBookSidePanel = ({ title, side, levels }: OrderBookSidePanelProps): R
                     {formattedSize}
                   </span>
                   <span
-                    className={`text-right font-medium tabular-nums ${accentClass}`}
-                    title={formattedPrice}
+                    className="truncate text-right font-mono tabular-nums text-zinc-700 dark:text-slate-300"
+                    title={formattedTotal}
                   >
-                    {formattedPrice}
+                    {formattedTotal}
                   </span>
                 </div>
               </div>
